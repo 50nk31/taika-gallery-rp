@@ -708,6 +708,72 @@
             margin: 0 auto;
             border: 1px solid #EE0093; /* Необязательно, рамка вокруг баннера */
         }
+
+                /* ... (предыдущие стили) ... */
+
+        /* Стили для комментариев к изображениям */
+        .comments-section {
+            margin-top: 10px;
+            border-top: 1px solid #ffe6f0;
+            padding-top: 10px;
+        }
+        .comments-header {
+            font-size: 14px;
+            font-weight: bold;
+            color: #EE0093;
+            margin-bottom: 5px;
+        }
+        .comments-list {
+            max-height: 150px; /* Ограничиваем высоту списка комментариев */
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 5px; /* Для скроллбара */
+        }
+        .comment {
+            background-color: #FFF4FA;
+            border: 1px solid #ffe6f0;
+            border-radius: 5px;
+            padding: 5px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        .comment-header {
+            font-weight: bold;
+            color: #EE0093;
+            margin-bottom: 2px;
+        }
+        .comment-content {
+            word-break: break-word; /* Перенос длинных слов */
+        }
+        .comment-form {
+            display: flex;
+            /* margin-top: 5px; Убираем, так как отступ уже есть в comments-section */
+        }
+        .comment-form input {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #EE0093;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-size: 12px;
+        }
+        .comment-form button {
+            background-color: #EE0093;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .comment-form button:hover {
+            background-color: #d00070;
+        }
+        .comment-form button:disabled {
+             background-color: #cccccc;
+             cursor: not-allowed;
+        }
+        
     </style>
 </head>
 <body>
@@ -1257,35 +1323,41 @@
         }
         
         // Выход пользователя
+                // Выход пользователя (обновлённая версия)
         function logoutUser() {
             // Добавляем системное сообщение о выходе
             if (isLoggedIn) {
                 addSystemMessage(`${currentUsername} вышел из священного чата`);
             }
-            
             // Очищаем данные пользователя
             currentUsername = '';
             currentUserRole = '';
             isLoggedIn = false;
-            
             // Останавливаем обновление чата
             if (chatInterval) {
                 clearInterval(chatInterval);
                 chatInterval = null;
             }
-            
             // Скрываем чат и показываем форму авторизации
             document.getElementById('chatContainer').style.display = 'none';
             document.getElementById('authContainer').style.display = 'block';
-            
             // Очищаем поля ввода
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('registerUsername').value = '';
             document.getElementById('registerPassword').value = '';
-            
-            // Очищаем сообщения
+            // Очищаем сообщения чата
             document.getElementById('chatMessages').innerHTML = '';
+
+            // Сбрасываем состояние форм комментариев в галерее
+            // (Можно просто перезагрузить галерею или обновить отдельные элементы)
+            // Простой способ: очистить галерею и перезагрузить
+            // Более сложный: найти все формы и изменить их состояние
+            // Выберем простой путь: перезагрузить галерею, если она активна
+            if (document.getElementById('gallery').classList.contains('active')) {
+                 currentOffset = 0; // Сброс пагинации
+                 loadGalleryImages(); // Перезагрузит галерею с новыми состояниями авторизации
+            }
         }
         
         // Инициализация чата
@@ -1702,14 +1774,20 @@
         }
         
         // Отображение изображений
+                // Отображение изображений (обновлённая версия)
         function renderGalleryImages(images) {
             const galleryGrid = document.getElementById('galleryGrid');
-            
             images.forEach(imageObj => {
+                // Проверяем, существует ли элемент, чтобы избежать дублирования при "Загрузить ещё"
+                if (document.getElementById(`image-${imageObj.id}`)) {
+                     console.log(`Изображение с ID ${imageObj.id} уже отображено.`);
+                     return; // Пропускаем, если уже есть
+                }
+
                 const galleryItem = document.createElement('div');
                 galleryItem.className = 'gallery-item';
                 galleryItem.id = `image-${imageObj.id}`;
-                
+
                 // Создаем HTML для изображения
                 let imageHTML = `
                     <img src="${imageObj.src}" alt="${imageObj.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmZjRmYSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2VlMDA5MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
@@ -1717,23 +1795,49 @@
                     <div class="item-desc">${escapeHtml(imageObj.desc)}</div>
                     <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
                 `;
-                
+
                 // Добавляем кнопку удаления для админа
                 if (currentUserRole === 'admin') {
                     imageHTML += `<button class="delete-button" onclick="deleteImage('${imageObj.id}')">×</button>`;
                 }
-                
+
+                // Добавляем секцию комментариев
+                imageHTML += `
+                    <div class="comments-section">
+                        <div class="comments-header">Комментарии:</div>
+                        <div class="comments-list" id="comments-list-${imageObj.id}">
+                             <!-- Комментарии будут загружены сюда -->
+                        </div>
+                `;
+
+                // Форма добавления комментария (видна только авторизованным)
+                if (isLoggedIn) {
+                    imageHTML += `
+                        <div class="comment-form">
+                            <input type="text" id="comment-input-${imageObj.id}" placeholder="Написать комментарий..." maxlength="200">
+                            <button onclick="addComment('${imageObj.id}')">Отправить</button>
+                        </div>
+                    `;
+                } else {
+                     // Сообщение для неавторизованных пользователей
+                     imageHTML += `<div style="font-size: 11px; color: #999; text-align: center;">Авторизуйтесь, чтобы комментировать</div>`;
+                }
+
+                imageHTML += `</div>`; // Закрываем comments-section
+
                 galleryItem.innerHTML = imageHTML;
-                
+
                 // Добавляем обработчик клика для открытия в полном размере
                 galleryItem.addEventListener('click', function(e) {
-                    // Игнорируем клик по кнопке удаления
-                    if (e.target.classList.contains('delete-button')) {
+                    // Игнорируем клик по кнопке удаления и по полям ввода/кнопкам формы
+                    if (e.target.classList.contains('delete-button') ||
+                        e.target.tagName === 'INPUT' ||
+                        e.target.tagName === 'BUTTON') {
                         return;
                     }
                     openFullscreenImage(imageObj.src, imageObj.title);
                 });
-                
+
                 // Показываем кнопку удаления при наведении для админа
                 if (currentUserRole === 'admin') {
                     galleryItem.addEventListener('mouseenter', function() {
@@ -1742,7 +1846,6 @@
                             deleteButton.style.display = 'block';
                         }
                     });
-                    
                     galleryItem.addEventListener('mouseleave', function() {
                         const deleteButton = this.querySelector('.delete-button');
                         if (deleteButton) {
@@ -1750,10 +1853,16 @@
                         }
                     });
                 }
-                
+
                 galleryGrid.appendChild(galleryItem);
+
+                // Загружаем комментарии для этого изображения
+                 loadCommentsForImage(imageObj.id);
             });
         }
+
+
+
         
         // Обработка формы загрузки
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
@@ -2044,6 +2153,126 @@
                 addSystemMessage(`${currentUsername} покинул священный чат`);
             }
         });
+
+        async function loadCommentsForImage(imageId) {
+             try {
+                 if (!supabase) return;
+
+                 const { data, error } = await supabase
+                     .from('image_comments')
+                     .select('id, username, comment, created_at')
+                     .eq('image_id', imageId)
+                     .order('created_at', { ascending: true }); // Сначала старые
+
+                 if (error) {
+                      console.error(`Ошибка загрузки комментариев для изображения ${imageId}:`, error);
+                      // Можно отобразить сообщение об ошибке в блоке комментариев
+                      const commentsList = document.getElementById(`comments-list-${imageId}`);
+                      if (commentsList) {
+                          commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
+                      }
+                      return;
+                 }
+
+                 renderComments(imageId, data);
+
+             } catch (error) {
+                  console.error(`Критическая ошибка загрузки комментариев для изображения ${imageId}:`, error);
+                  const commentsList = document.getElementById(`comments-list-${imageId}`);
+                  if (commentsList) {
+                       commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
+                  }
+             }
+        }
+
+        // Отображение комментариев для изображения
+        function renderComments(imageId, comments) {
+            const commentsList = document.getElementById(`comments-list-${imageId}`);
+            if (!commentsList) return;
+
+            if (comments.length === 0) {
+                 commentsList.innerHTML = `<div style="font-size:11px; color:#999; text-align:center;">Комментариев пока нет</div>`;
+                 return;
+            }
+
+            commentsList.innerHTML = ''; // Очищаем список
+
+            comments.forEach(comment => {
+                 const commentElement = document.createElement('div');
+                 commentElement.className = 'comment';
+                 const formattedTime = new Date(comment.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                 commentElement.innerHTML = `
+                     <div class="comment-header">${escapeHtml(comment.username)} <span style="font-weight:normal; color:#999;">${formattedTime}</span></div>
+                     <div class="comment-content">${escapeHtml(comment.comment)}</div>
+                 `;
+                 commentsList.appendChild(commentElement);
+            });
+
+            // Прокручиваем вниз списка комментариев
+            commentsList.scrollTop = commentsList.scrollHeight;
+        }
+
+
+        // Добавление комментария к изображению
+        async function addComment(imageId) {
+             if (!isLoggedIn || !currentUsername) {
+                  alert('Вы должны быть авторизованы, чтобы оставлять комментарии.');
+                  return;
+             }
+
+             const inputElement = document.getElementById(`comment-input-${imageId}`);
+             if (!inputElement) return;
+
+             const commentText = inputElement.value.trim();
+             if (!commentText) {
+                  alert('Пожалуйста, введите текст комментария.');
+                  return;
+             }
+
+             if (commentText.length > 200) { // Проверка длины
+                  alert('Комментарий слишком длинный (максимум 200 символов).');
+                  return;
+             }
+
+             const button = inputElement.nextElementSibling; // Кнопка "Отправить"
+             const originalText = button.textContent;
+             button.disabled = true;
+             button.textContent = '...';
+
+             try {
+                  if (!supabase) throw new Error('Клиент Supabase не инициализирован');
+
+                  const { data, error } = await supabase
+                      .from('image_comments')
+                      .insert([
+                          {
+                              image_id: imageId,
+                              username: currentUsername,
+                              comment: commentText
+                          }
+                      ])
+                      .select(); // Получаем вставленную запись
+
+                  if (error) throw error;
+
+                  console.log('Комментарий добавлен:', data[0]);
+
+                  // Очищаем поле ввода
+                  inputElement.value = '';
+
+                  // Перезагружаем комментарии для этого изображения
+                  // Можно было бы добавить напрямую в DOM, но проще перезагрузить
+                  loadCommentsForImage(imageId);
+
+             } catch (error) {
+                  console.error('Ошибка добавления комментария:', error);
+                  alert('Ошибка при добавлении комментария: ' + error.message);
+             } finally {
+                  // Восстанавливаем кнопку
+                  button.disabled = false;
+                  button.textContent = originalText;
+             }
+        }
     </script>
 </body>
 </html>
