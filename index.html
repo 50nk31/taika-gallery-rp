@@ -167,27 +167,6 @@
             text-decoration: underline;
         }
         
-        /* Навигация по страницам */
-        .page-nav {
-            text-align: center;
-            padding: 10px;
-            background-color: #ffe6f0;
-            border-top: 1px solid #EE0093;
-        }
-        
-        .page-nav a {
-            color: #EE0093;
-            text-decoration: none;
-            margin: 0 5px;
-            padding: 2px 8px;
-            border: 1px solid #EE0093;
-        }
-        
-        .page-nav a:hover {
-            background-color: #EE0093;
-            color: white;
-        }
-        
         /* Футер в стиле форчана */
         .footer {
             background-color: #EE0093;
@@ -203,7 +182,7 @@
             text-decoration: underline;
         }
         
-        /* Стили для других страниц */
+        /* Стили для страниц */
         .content-page {
             padding: 15px;
             display: none;
@@ -228,7 +207,7 @@
             margin-bottom: 10px;
         }
         
-        /* Галерея */
+        /* Галерея с бесконечной прокруткой */
         .gallery-container {
             padding: 15px;
             display: none;
@@ -343,86 +322,7 @@
             margin-top: 5px;
         }
         
-        /* Пагинация галереи */
-        .gallery-pagination {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #ffe6f0;
-            border: 1px solid #EE0093;
-        }
-        
-        .gallery-pagination a {
-            color: #EE0093;
-            text-decoration: none;
-            margin: 0 5px;
-            padding: 5px 10px;
-            border: 1px solid #EE0093;
-        }
-        
-        .gallery-pagination a:hover,
-        .gallery-pagination a.active {
-            background-color: #EE0093;
-            color: white;
-        }
-        
-        /* Модальное окно для полноразмерного изображения */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-        }
-        
-        .modal-content {
-            margin: auto;
-            display: block;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            object-fit: contain;
-        }
-        
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        
-        .close:hover,
-        .close:focus {
-            color: #bbb;
-        }
-        
-        .modal-caption {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 700px;
-            text-align: center;
-            color: #ccc;
-            padding: 10px 0;
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 18px;
-        }
-        
-        /* Стили для загрузки */
+        /* Индикатор загрузки */
         .loading {
             text-align: center;
             padding: 20px;
@@ -559,6 +459,32 @@
             color: #EE0093;
             background-color: #ffe6f0;
         }
+        
+        /* Стили для бесконечной прокрутки */
+        .load-more {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .load-more button {
+            background-color: #EE0093;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        
+        .load-more button:hover {
+            background-color: #d00070;
+        }
+        
+        .load-more button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -622,11 +548,6 @@
                         [<a href="#" onclick="showPage('gallery')">Галерея</a>] Священные арты
                     </div>
                 </div>
-            </div>
-            
-            <!-- Навигация по страницам -->
-            <div class="page-nav">
-                [<a href="#">1</a>] [<a href="#">2</a>] [<a href="#">3</a>] [След.]
             </div>
         </div>
         
@@ -720,7 +641,7 @@
             </div>
         </div>
         
-        <!-- Галерея -->
+        <!-- Галерея с бесконечной прокруткой -->
         <div id="gallery" class="gallery-container">
             <div class="gallery-header">
                 /gallery/ - Священная Галерея
@@ -758,12 +679,12 @@
             
             <!-- Сетка галереи -->
             <div class="gallery-grid" id="galleryGrid">
-                <!-- Здесь будут отображаться изображения текущей страницы -->
+                <!-- Здесь будут отображаться изображения -->
             </div>
             
-            <!-- Пагинация галереи -->
-            <div class="gallery-pagination" id="galleryPagination">
-                <!-- Здесь будет сгенерирована пагинация -->
+            <!-- Кнопка загрузки еще -->
+            <div class="load-more" id="loadMoreSection">
+                <button onclick="loadMoreImages()" id="loadMoreButton">ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ</button>
             </div>
         </div>
         
@@ -791,16 +712,9 @@
         </div>
     </div>
     
-    <!-- Модальное окно для полноразмерного изображения -->
-    <div id="imageModal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modalImage">
-        <div id="modalCaption" class="modal-caption"></div>
-    </div>
-    
     <!-- Футер -->
     <div class="footer">
-        Все права принадлежат культу Tai Crypto | Создано в 2033 году<br>
+        Все права принадлежат культу Tai Crypto | Создано в 2024 году<br>
         <a href="#">[Правила]</a> <a href="#">[FAQ]</a> <a href="#">[Архив]</a>
     </div>
 
@@ -821,6 +735,12 @@
         // Переменные для чата
         let currentUsername = '';
         let chatMessages = [];
+        
+        // Переменные для галереи
+        let galleryImages = [];
+        let currentOffset = 0;
+        const imagesPerPage = 12;
+        let isLoading = false;
         
         // Функция для генерации случайного числа пользователей
         function generateRandomUsers() {
@@ -856,11 +776,6 @@
             }
         }
         
-        // Массив для хранения всех изображений галереи
-        let galleryImages = [];
-        let currentPage = 1;
-        const imagesPerPage = 12;
-        
         // Инициализация генератора пользователей
         function initUserCounter() {
             // Устанавливаем начальное значение
@@ -885,6 +800,7 @@
             scheduleNextUpdate();
         }
         
+        // Показ страницы
         function showPage(pageId) {
             // Скрыть все страницы
             document.querySelectorAll('.content-page, .gallery-container').forEach(page => {
@@ -894,8 +810,8 @@
             // Показать выбранную страницу
             if (pageId === 'gallery') {
                 document.getElementById(pageId).classList.add('active');
-                // При открытии галереи показываем первую страницу
-                currentPage = 1;
+                // При открытии галереи загружаем первые изображения
+                currentOffset = 0;
                 loadGalleryImages();
             } else if (pageId === 'community') {
                 document.getElementById(pageId).classList.add('active');
@@ -1007,21 +923,25 @@
         
         // Загрузка изображений из Supabase
         async function loadGalleryImages() {
+            if (isLoading) return;
+            
             try {
                 if (!supabase) {
                     throw new Error('Supabase client not initialized');
                 }
                 
+                isLoading = true;
                 showLoading(true);
                 hideError();
                 hideSuccess();
                 
-                debugLog('Загрузка изображений из базы данных');
+                debugLog('Загрузка изображений из базы данных', { offset: currentOffset, limit: imagesPerPage });
                 
                 const { data, error } = await supabase
                     .from('gallery_images')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .range(currentOffset, currentOffset + imagesPerPage - 1);
                 
                 if (error) {
                     debugLog('Ошибка при загрузке изображений', error);
@@ -1030,7 +950,14 @@
                 
                 debugLog('Получены данные изображений', { count: data.length });
                 
-                galleryImages = data.map(img => ({
+                // Если это первая загрузка, очищаем галерею
+                if (currentOffset === 0) {
+                    galleryImages = [];
+                    document.getElementById('galleryGrid').innerHTML = '';
+                }
+                
+                // Добавляем новые изображения
+                const newImages = data.map(img => ({
                     id: img.id,
                     src: img.image_url,
                     title: img.title,
@@ -1039,14 +966,61 @@
                     created_at: img.created_at
                 }));
                 
-                renderGalleryPage();
+                galleryImages = galleryImages.concat(newImages);
+                
+                // Отображаем изображения
+                renderGalleryImages(newImages);
+                
+                // Обновляем offset для следующей загрузки
+                currentOffset += data.length;
+                
+                // Скрываем кнопку "Загрузить еще", если больше нет изображений
+                const loadMoreButton = document.getElementById('loadMoreButton');
+                if (data.length < imagesPerPage) {
+                    loadMoreButton.disabled = true;
+                    loadMoreButton.textContent = 'БОЛЬШЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ НЕТ';
+                } else {
+                    loadMoreButton.disabled = false;
+                    loadMoreButton.textContent = 'ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ';
+                }
+                
             } catch (error) {
                 showError('Ошибка загрузки изображений: ' + error.message);
                 console.error('Ошибка загрузки изображений:', error);
                 debugLog('Критическая ошибка загрузки', error);
             } finally {
+                isLoading = false;
                 showLoading(false);
             }
+        }
+        
+        // Загрузка еще изображений
+        function loadMoreImages() {
+            loadGalleryImages();
+        }
+        
+        // Отображение изображений
+        function renderGalleryImages(images) {
+            const galleryGrid = document.getElementById('galleryGrid');
+            
+            images.forEach(imageObj => {
+                const galleryItem = document.createElement('div');
+                galleryItem.className = 'gallery-item';
+                
+                galleryItem.innerHTML = `
+                    <img src="${imageObj.src}" alt="${imageObj.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmZjRmYSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2VlMDA5MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="item-title">${escapeHtml(imageObj.title)}</div>
+                    <div class="item-desc">${escapeHtml(imageObj.desc)}</div>
+                    <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
+                `;
+                
+                // Добавляем обработчик клика для открытия в полном размере
+                galleryItem.addEventListener('click', function() {
+                    openFullscreenImage(imageObj.src, imageObj.title);
+                });
+                
+                galleryGrid.appendChild(galleryItem);
+            });
         }
         
         // Обработка формы загрузки
@@ -1146,8 +1120,9 @@
                 
                 debugLog('Изображение успешно сохранено в базе данных', imageData);
                 
-                // Обновление галереи
-                await loadGalleryImages();
+                // Сбрасываем offset и перезагружаем галерею
+                currentOffset = 0;
+                loadGalleryImages();
                 
                 // Очистка формы
                 document.getElementById('uploadForm').reset();
@@ -1165,145 +1140,40 @@
             }
         });
         
-        // Функция отображения страницы галереи
-        function renderGalleryPage() {
-            const galleryGrid = document.getElementById('galleryGrid');
-            const pagination = document.getElementById('galleryPagination');
-            
-            // Очищаем галерею
-            galleryGrid.innerHTML = '';
-            
-            // Вычисляем общее количество страниц
-            const totalPages = Math.ceil(galleryImages.length / imagesPerPage);
-            
-            // Если нет изображений
-            if (galleryImages.length === 0) {
-                galleryGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #EE0093;">Галерея пуста. Загрузите первое изображение!</div>';
-                renderPagination(1, 1);
-                return;
-            }
-            
-            // Проверяем корректность текущей страницы
-            if (currentPage > totalPages) {
-                currentPage = totalPages;
-            }
-            if (currentPage < 1) {
-                currentPage = 1;
-            }
-            
-            // Вычисляем индексы изображений для текущей страницы
-            const startIndex = (currentPage - 1) * imagesPerPage;
-            const endIndex = Math.min(startIndex + imagesPerPage, galleryImages.length);
-            
-            // Отображаем изображения текущей страницы
-            for (let i = startIndex; i < endIndex; i++) {
-                const imageObj = galleryImages[i];
-                const galleryItem = document.createElement('div');
-                galleryItem.className = 'gallery-item';
-                
-                galleryItem.innerHTML = `
-                    <img src="${imageObj.src}" alt="${imageObj.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmZjRmYSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2VlMDA5MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
-                    <div class="item-title">${escapeHtml(imageObj.title)}</div>
-                    <div class="item-desc">${escapeHtml(imageObj.desc)}</div>
-                    <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
-                `;
-                
-                // Добавляем обработчик клика для открытия в полном размере
-                galleryItem.addEventListener('click', function() {
-                    openFullscreenImage(imageObj.src, imageObj.title);
-                });
-                
-                galleryGrid.appendChild(galleryItem);
-            }
-            
-            // Отображаем пагинацию
-            renderPagination(currentPage, totalPages);
-        }
-        
-        // Функция отображения пагинации
-        function renderPagination(currentPage, totalPages) {
-            const pagination = document.getElementById('galleryPagination');
-            pagination.innerHTML = '';
-            
-            if (totalPages <= 1) {
-                pagination.style.display = 'none';
-                return;
-            }
-            
-            pagination.style.display = 'block';
-            
-            // Кнопка "Предыдущая"
-            if (currentPage > 1) {
-                const prevLink = document.createElement('a');
-                prevLink.href = '#';
-                prevLink.textContent = '← Пред.';
-                prevLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    currentPage--;
-                    renderGalleryPage();
-                });
-                pagination.appendChild(prevLink);
-            }
-            
-            // Страницы
-            const startPage = Math.max(1, currentPage - 2);
-            const endPage = Math.min(totalPages, currentPage + 2);
-            
-            for (let i = startPage; i <= endPage; i++) {
-                const pageLink = document.createElement('a');
-                pageLink.href = '#';
-                pageLink.textContent = i;
-                
-                if (i === currentPage) {
-                    pageLink.classList.add('active');
-                }
-                
-                pageLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    currentPage = i;
-                    renderGalleryPage();
-                });
-                
-                pagination.appendChild(pageLink);
-            }
-            
-            // Кнопка "Следующая"
-            if (currentPage < totalPages) {
-                const nextLink = document.createElement('a');
-                nextLink.href = '#';
-                nextLink.textContent = 'След. →';
-                nextLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    currentPage++;
-                    renderGalleryPage();
-                });
-                pagination.appendChild(nextLink);
-            }
-        }
-        
         // Функция открытия изображения в полном размере
         function openFullscreenImage(src, title) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            const captionText = document.getElementById('modalCaption');
+            // Создаем модальное окно динамически
+            let modal = document.getElementById('imageModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'imageModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <span class="close">&times;</span>
+                    <img class="modal-content" id="modalImage">
+                    <div id="modalCaption" class="modal-caption"></div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Добавляем обработчики событий
+                modal.querySelector('.close').addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+                
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+            
+            const modalImg = modal.querySelector('#modalImage');
+            const captionText = modal.querySelector('#modalCaption');
             
             modal.style.display = 'block';
             modalImg.src = src;
             captionText.innerHTML = escapeHtml(title);
         }
-        
-        // Закрытие модального окна
-        document.querySelector('.close').addEventListener('click', function() {
-            document.getElementById('imageModal').style.display = 'none';
-        });
-        
-        // Закрытие модального окна при клике вне изображения
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('imageModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
         
         // Вспомогательные функции
         function showLoading(show) {
