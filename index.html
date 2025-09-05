@@ -405,11 +405,14 @@
             border-color: #EE0093;
         }
         
+        .chat-input-container {
+            background-color: #ffffff;
+            border-top: 1px solid #EE0093;
+        }
+        
         .chat-input {
             display: flex;
             padding: 10px;
-            background-color: #ffffff;
-            border-top: 1px solid #EE0093;
         }
         
         .chat-input input {
@@ -436,6 +439,53 @@
         .chat-input button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+        }
+        
+        /* Плашка с эмодзи */
+        .emoji-panel {
+            display: none;
+            background-color: #ffe6f0;
+            border-top: 1px solid #EE0093;
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .emoji-panel.active {
+            display: block;
+        }
+        
+        .emoji-bar {
+            text-align: center;
+            padding: 5px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #EE0093;
+            cursor: pointer;
+            font-weight: bold;
+            color: #EE0093;
+        }
+        
+        .emoji-bar:hover {
+            background-color: #ffe6f0;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+        }
+        
+        .emoji-item {
+            text-align: center;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        
+        .emoji-item:hover {
+            background-color: #EE0093;
+            color: white;
         }
         
         /* Стили для имени пользователя */
@@ -689,9 +739,20 @@
                 <div id="chatInterface" style="display: none;">
                     <div class="chat-status" id="chatStatus">Подключение к священному чату...</div>
                     <div class="chat-messages" id="chatMessages"></div>
-                    <div class="chat-input">
-                        <input type="text" id="messageInput" placeholder="Введите ваше послание..." maxlength="500">
-                        <button onclick="sendMessage()" id="sendButton">ПОСЛАТЬ</button>
+                    
+                    <!-- Плашка с эмодзи -->
+                    <div class="emoji-bar" onclick="toggleEmojiPanel()">★ ЭМОДЗИ ★</div>
+                    <div class="emoji-panel" id="emojiPanel">
+                        <div class="emoji-grid" id="emojiGrid">
+                            <!-- Эмодзи будут добавлены через JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <div class="chat-input">
+                            <input type="text" id="messageInput" placeholder="Введите ваше послание..." maxlength="500">
+                            <button onclick="sendMessage()" id="sendButton">ПОСЛАТЬ</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -799,6 +860,18 @@
         const imagesPerPage = 12;
         let isLoading = false;
         
+        // Массив популярных эмодзи
+        const popularEmojis = [
+            '😀', '😂', '😍', '🥰', '😎', '🤩', '🥳', '😭',
+            '😡', '🤬', '🤯', '🥶', '😱', '🤠', '🥴', '😈',
+            '👻', '💩', '👍', '👎', '👌', '✌️', '🤟', '🤘',
+            '👏', '🙏', '🔥', '💯', '💪', '👀', '🧠', '💎',
+            '💰', '🚀', '🌙', '⭐', '✨', '⚡', '💥', '💫',
+            '❤️', '💔', '💘', '💝', '💖', '💗', '💓', '💞',
+            '🐾', '🐱', '🐶', '🦊', '🐯', '🦁', '🐮', '🐷',
+            '🐸', '🐵', '🐔', '🐧', '🦄', '🐝', '🐛', '🦋'
+        ];
+        
         // Функция для генерации случайного числа пользователей
         function generateRandomUsers() {
             // Генерируем число от 10000 до 15000
@@ -891,6 +964,53 @@
             // Останавливаем предыдущий интервал, если есть
             if (chatInterval) {
                 clearInterval(chatInterval);
+            }
+            
+            // Инициализируем плашку с эмодзи
+            initEmojiPanel();
+        }
+        
+        // Инициализация плашки с эмодзи
+        function initEmojiPanel() {
+            const emojiGrid = document.getElementById('emojiGrid');
+            if (!emojiGrid) return;
+            
+            emojiGrid.innerHTML = '';
+            
+            popularEmojis.forEach(emoji => {
+                const emojiItem = document.createElement('div');
+                emojiItem.className = 'emoji-item';
+                emojiItem.textContent = emoji;
+                emojiItem.title = emoji;
+                emojiItem.addEventListener('click', function() {
+                    insertEmoji(emoji);
+                });
+                emojiGrid.appendChild(emojiItem);
+            });
+        }
+        
+        // Переключение видимости плашки с эмодзи
+        function toggleEmojiPanel() {
+            const emojiPanel = document.getElementById('emojiPanel');
+            if (emojiPanel) {
+                emojiPanel.classList.toggle('active');
+            }
+        }
+        
+        // Вставка эмодзи в поле ввода
+        function insertEmoji(emoji) {
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                const start = messageInput.selectionStart;
+                const end = messageInput.selectionEnd;
+                const text = messageInput.value;
+                const newText = text.substring(0, start) + emoji + text.substring(end);
+                messageInput.value = newText;
+                
+                // Устанавливаем курсор после вставленного эмодзи
+                const newCursorPosition = start + emoji.length;
+                messageInput.setSelectionRange(newCursorPosition, newCursorPosition);
+                messageInput.focus();
             }
         }
         
@@ -1219,7 +1339,7 @@
                 const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
                 debugLog('Попытка загрузки файла в Storage', { fileName: fileName });
                 
-                const { data: uploadData, error: uploadError } = await supabase
+                const {  uploadData, error: uploadError } = await supabase
                     .storage
                     .from('gallery-images')
                     .upload(fileName, file, {
@@ -1246,7 +1366,7 @@
                     image_url: publicUrl 
                 });
                 
-                const { data: imageData, error: insertError } = await supabase
+                const {  imageData, error: insertError } = await supabase
                     .from('gallery_images')
                     .insert([
                         {
