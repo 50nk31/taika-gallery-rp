@@ -303,6 +303,11 @@
             background-color: #d00070;
         }
         
+        .upload-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
         /* Сетка галереи */
         .gallery-grid {
             display: grid;
@@ -438,6 +443,26 @@
             background-color: #ffe6e6;
             border: 1px solid #ff0000;
             margin: 10px 0;
+        }
+        
+        .success {
+            color: #008800;
+            text-align: center;
+            padding: 10px;
+            background-color: #e6ffe6;
+            border: 1px solid #008800;
+            margin: 10px 0;
+        }
+        
+        /* Debug info */
+        .debug-info {
+            background-color: #ffffcc;
+            border: 1px solid #cccc00;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -586,6 +611,8 @@
             
             <!-- Сообщения об ошибках -->
             <div id="errorMessage" class="error" style="display: none;"></div>
+            <div id="successMessage" class="success" style="display: none;"></div>
+            <div id="debugInfo" class="debug-info" style="display: none;"></div>
             
             <!-- Форма загрузки -->
             <div class="upload-form">
@@ -661,12 +688,27 @@
     </div>
 
     <script>
-        // Конфигурация Supabase (замените на свои данные)
+        // Конфигурация Supabase
         const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
         
         // Инициализация Supabase
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Функция для отладочного логирования
+        function debugLog(message, data = null) {
+            const debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.style.display = 'block';
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = data ? 
+                    `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}` : 
+                    `[${timestamp}] ${message}`;
+                debugDiv.innerHTML += `<div>${logEntry}</div>`;
+                debugDiv.scrollTop = debugDiv.scrollHeight;
+                console.log(`[DEBUG] ${message}`, data);
+            }
+        }
         
         // Массив для хранения всех изображений галереи
         let galleryImages = [];
@@ -697,13 +739,21 @@
             try {
                 showLoading(true);
                 hideError();
+                hideSuccess();
+                
+                debugLog('Загрузка изображений из базы данных');
                 
                 const { data, error } = await supabase
                     .from('gallery_images')
                     .select('*')
                     .order('created_at', { ascending: false });
                 
-                if (error) throw error;
+                if (error) {
+                    debugLog('Ошибка при загрузке изображений', error);
+                    throw error;
+                }
+                
+                debugLog('Получены данные изображений', { count: data.length });
                 
                 galleryImages = data.map(img => ({
                     id: img.id,
@@ -718,6 +768,7 @@
             } catch (error) {
                 showError('Ошибка загрузки изображений: ' + error.message);
                 console.error('Ошибка загрузки изображений:', error);
+                debugLog('Критическая ошибка загрузки', error);
             } finally {
                 showLoading(false);
             }
@@ -726,6 +777,7 @@
         // Обработка формы загрузки
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            debugLog('Начало процесса загрузки изображения');
             
             const fileInput = document.getElementById('imageFile');
             const titleInput = document.getElementById('imageTitle');
@@ -741,6 +793,12 @@
             const title = titleInput.value || 'Без названия';
             const desc = descInput.value || '';
             
+            debugLog('Выбран файл для загрузки', { 
+                name: file.name, 
+                size: file.size, 
+                type: file.type 
+            });
+            
             // Проверка, является ли файл изображением
             if (!file.type.match('image.*')) {
                 showError('Пожалуйста, выберите изображение!');
@@ -751,23 +809,48 @@
                 showLoading(true);
                 uploadButton.disabled = true;
                 hideError();
+                hideSuccess();
+                hideDebug();
                 
                 // Загрузка файла в Supabase Storage
-                const fileName = `${Date.now()}_${file.name}`;
+                const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+                debugLog('Попытка загрузки файла в Storage', { fileName: fileName });
+                
                 const { data: uploadData, error: uploadError } = await supabase
                     .storage
                     .from('gallery-images')
                     .upload(fileName, file, {
                         cacheControl: '3600',
-                        upsert: false
+                        upsert: false,
+                        contentType: file.type
                     });
                 
-                if (uploadError) throw uploadError;
+                if (uploadError) {
+                    debugLog('Ошибка загрузки в Storage', uploadError);
+                    throw new Error(`Storage upload error: ${uploadError.message}`);
+                }
+                
+                debugLog('Файл успешно загружен в Storage', uploadData);
                 
                 // Получение публичного URL файла
                 const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
+                debugLog('Сгенерирован публичный URL', { publicUrl: publicUrl });
+                
+                // Проверим, доступен ли файл по URL
+                try {
+                    const response = await fetch(publicUrl, { method: 'HEAD' });
+                    debugLog('Проверка доступности файла', { status: response.status });
+                } catch (checkError) {
+                    debugLog('Ошибка проверки доступности файла', checkError);
+                }
                 
                 // Сохранение информации об изображении в таблицу
+                debugLog('Сохранение информации в базу данных', { 
+                    title: title, 
+                    description: desc, 
+                    image_url: publicUrl 
+                });
+                
                 const { data: imageData, error: insertError } = await supabase
                     .from('gallery_images')
                     .insert([
@@ -779,7 +862,12 @@
                     ])
                     .select();
                 
-                if (insertError) throw insertError;
+                if (insertError) {
+                    debugLog('Ошибка сохранения в базу данных', insertError);
+                    throw new Error(`Database insert error: ${insertError.message}`);
+                }
+                
+                debugLog('Изображение успешно сохранено в базе данных', imageData);
                 
                 // Обновление галереи
                 await loadGalleryImages();
@@ -787,11 +875,13 @@
                 // Очистка формы
                 document.getElementById('uploadForm').reset();
                 
-                alert('Священное изображение успешно добавлено в галерею!');
+                showSuccess('Священное изображение успешно добавлено в галерею!');
+                debugLog('Загрузка завершена успешно');
                 
             } catch (error) {
                 showError('Ошибка загрузки изображения: ' + error.message);
                 console.error('Ошибка загрузки:', error);
+                debugLog('Критическая ошибка загрузки', error);
             } finally {
                 showLoading(false);
                 uploadButton.disabled = false;
@@ -961,7 +1051,34 @@
             }
         }
         
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            if (successDiv) {
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        function hideSuccess() {
+            const successDiv = document.getElementById('successMessage');
+            if (successDiv) {
+                successDiv.style.display = 'none';
+            }
+        }
+        
+        function hideDebug() {
+            const debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.style.display = 'none';
+                debugDiv.innerHTML = '';
+            }
+        }
+        
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
@@ -969,19 +1086,11 @@
         
         // Инициализация при загрузке страницы
         window.addEventListener('load', function() {
-            // Если вы хотите добавить начальные изображения для демонстрации:
-            /*
-            galleryImages = [
-                {
-                    id: 'demo1',
-                    src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmNjliNCIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPltTVkFLVFlJTVxuSU1BR0VdPC90ZXh0Pjwvc3ZnPg==',
-                    title: 'Святая Tai в момент прозрения',
-                    desc: 'Божественный момент просветления',
-                    date: '15/04/24',
-                    created_at: new Date()
-                }
-            ];
-            */
+            // Проверим подключение к Supabase
+            debugLog('Инициализация Supabase', { 
+                url: SUPABASE_URL,
+                hasClient: !!supabase 
+            });
         });
     </script>
 </body>
