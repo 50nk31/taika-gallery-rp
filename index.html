@@ -45,6 +45,21 @@
             font-weight: bold;
             color: white;
             font-size: 18px;
+            position: relative;
+        }
+        
+        /* Индикатор онлайн пользователей */
+        .online-users {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #ffcc00;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
         }
         
         /* Основной контейнер в стиле форчана */
@@ -450,6 +465,7 @@
     <!-- Шапка сайта -->
     <div class="header">
         [TAI CRYPTO] - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ
+        <div class="online-users" id="onlineUsers">12,345 онлайн</div>
     </div>
     
     <!-- Основной контейнер -->
@@ -668,13 +684,32 @@
         const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
         
-        // Инициализация Supabase - ИСПРАВЛЕНО
+        // Инициализация Supabase
         let supabase;
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             console.log('Supabase client initialized successfully');
         } catch (error) {
             console.error('Failed to initialize Supabase client:', error);
+        }
+        
+        // Функция для генерации случайного числа пользователей
+        function generateRandomUsers() {
+            // Генерируем число от 10000 до 15000
+            const min = 10000;
+            const max = 15000;
+            const randomUsers = Math.floor(Math.random() * (max - min + 1)) + min;
+            
+            // Форматируем число с запятыми
+            const formattedUsers = randomUsers.toLocaleString('ru-RU');
+            
+            // Обновляем отображение
+            const onlineUsersElement = document.getElementById('onlineUsers');
+            if (onlineUsersElement) {
+                onlineUsersElement.textContent = `${formattedUsers} онлайн`;
+            }
+            
+            console.log(`Обновлено количество пользователей: ${formattedUsers}`);
         }
         
         // Функция для отладочного логирования
@@ -696,6 +731,30 @@
         let galleryImages = [];
         let currentPage = 1;
         const imagesPerPage = 12;
+        
+        // Инициализация генератора пользователей
+        function initUserCounter() {
+            // Устанавливаем начальное значение
+            generateRandomUsers();
+            
+            // Обновляем каждые 5-10 минут (300000-600000 мс)
+            const minInterval = 300000; // 5 минут
+            const maxInterval = 600000; // 10 минут
+            
+            function scheduleNextUpdate() {
+                // Генерируем случайный интервал между 5 и 10 минутами
+                const randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
+                console.log(`Следующее обновление через ${randomInterval / 1000 / 60} минут`);
+                
+                setTimeout(() => {
+                    generateRandomUsers();
+                    scheduleNextUpdate(); // Планируем следующее обновление
+                }, randomInterval);
+            }
+            
+            // Начинаем цикл обновлений
+            scheduleNextUpdate();
+        }
         
         function showPage(pageId) {
             // Скрыть все страницы
@@ -807,7 +866,7 @@
                 const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
                 debugLog('Попытка загрузки файла в Storage', { fileName: fileName });
                 
-                const { data: uploadData, error: uploadError } = await supabase
+                const {  uploadData, error: uploadError } = await supabase
                     .storage
                     .from('gallery-images')
                     .upload(fileName, file, {
@@ -823,7 +882,7 @@
                 
                 debugLog('Файл успешно загружен в Storage', uploadData);
                 
-                // Получение публичного URL файла - ИСПРАВЛЕНО
+                // Получение публичного URL файла
                 const { data: publicUrlData } = supabase
                     .storage
                     .from('gallery-images')
@@ -839,7 +898,7 @@
                     image_url: publicUrl 
                 });
                 
-                const { data: imageData, error: insertError } = await supabase
+                const {  imageData, error: insertError } = await supabase
                     .from('gallery_images')
                     .insert([
                         {
@@ -1079,6 +1138,9 @@
                 url: SUPABASE_URL,
                 hasClient: !!supabase 
             });
+            
+            // Инициализируем счетчик пользователей
+            initUserCounter();
         });
     </script>
 </body>
