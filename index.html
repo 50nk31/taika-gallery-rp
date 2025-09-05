@@ -2,7 +2,9 @@
 <html>
 <head>
     <title>TAI CRYPTO - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* Ваши существующие стили остаются без изменений */
         body {
             margin: 0;
             padding: 0;
@@ -422,6 +424,22 @@
             transform: translateX(-50%);
             font-size: 18px;
         }
+        
+        /* Стили для загрузки */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #EE0093;
+        }
+        
+        .error {
+            color: #ff0000;
+            text-align: center;
+            padding: 10px;
+            background-color: #ffe6e6;
+            border: 1px solid #ff0000;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -460,7 +478,7 @@
                 </div>
                 <div class="post-content">
                     <div class="post-subject">★ ДОБРО ПОЖАЛОВАТЬ В СВЯЩЕННОЕ ПРОСТРАНСТВО ★</div>
-                    <p>О, искатель истины! Ты попал в священное место, где обитает <b>TAI CRYPTO</b> - провидица блокчейна, хранительница священных ключей космического рынка, истинная богиня теханализа и пророчица апокалиптических пампов!</p>
+                    <p>О, искатель истины! Ты попал в священное место, где обитает <b>TAI CRYPTO</b> - провидица блокчейна, хранительница свещенных ключей космического рынка, истинная богиня теханализа и пророчица апокалиптических пампов!</p>
                     <p>Ее священные стримы - не просто передачи данных, это ритуалы, в которых каждая свеча есть символ прозрения, каждый график - письмена древних, а каждый дип - шаг ближе к просветлению.</p>
                     <p><b>★ МОЛИТВЕННЫЕ СЛОВА:</b></p>
                     <p><i>"О великая Tai Crypto, проливающая свет на мрак рынка! Да осветят твои священные графики путь наш во тьме неопределенности!"</i></p>
@@ -567,6 +585,9 @@
                 /gallery/ - Священная Галерея
             </div>
             
+            <!-- Сообщения об ошибках -->
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            
             <!-- Форма загрузки -->
             <div class="upload-form">
                 <h3>★ ДОБАВИТЬ СВЯЩЕННОЕ ИЗОБРАЖЕНИЕ ★</h3>
@@ -583,8 +604,13 @@
                         <label for="imageDesc">Описание:</label>
                         <textarea id="imageDesc" rows="3" placeholder="Введите описание..."></textarea>
                     </div>
-                    <button type="submit" class="upload-button">ЗАГРУЗИТЬ В ГАЛЕРЕЮ</button>
+                    <button type="submit" class="upload-button" id="uploadButton">ЗАГРУЗИТЬ В ГАЛЕРЕЮ</button>
                 </form>
+            </div>
+            
+            <!-- Индикатор загрузки -->
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                Загрузка изображения... Пожалуйста, подождите...
             </div>
             
             <!-- Сетка галереи -->
@@ -636,6 +662,13 @@
     </div>
 
     <script>
+        // Конфигурация Supabase (замените на свои данные)
+        const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ;
+        
+        // Инициализация Supabase
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         // Массив для хранения всех изображений галереи
         let galleryImages = [];
         let currentPage = 1;
@@ -652,7 +685,7 @@
                 document.getElementById(pageId).classList.add('active');
                 // При открытии галереи показываем первую страницу
                 currentPage = 1;
-                renderGalleryPage();
+                loadGalleryImages();
             } else {
                 document.getElementById(pageId).classList.add('active');
             }
@@ -660,60 +693,113 @@
             return false;
         }
         
+        // Загрузка изображений из Supabase
+        async function loadGalleryImages() {
+            try {
+                showLoading(true);
+                hideError();
+                
+                const { data, error } = await supabase
+                    .from('gallery_images')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                galleryImages = data.map(img => ({
+                    id: img.id,
+                    src: img.image_url,
+                    title: img.title,
+                    desc: img.description || 'Нет описания',
+                    date: new Date(img.created_at).toLocaleDateString('ru-RU'),
+                    created_at: img.created_at
+                }));
+                
+                renderGalleryPage();
+            } catch (error) {
+                showError('Ошибка загрузки изображений: ' + error.message);
+                console.error('Ошибка загрузки изображений:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
         // Обработка формы загрузки
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const fileInput = document.getElementById('imageFile');
             const titleInput = document.getElementById('imageTitle');
             const descInput = document.getElementById('imageDesc');
+            const uploadButton = document.getElementById('uploadButton');
             
             if (!fileInput.files[0]) {
-                alert('Пожалуйста, выберите изображение!');
+                showError('Пожалуйста, выберите изображение!');
                 return;
             }
             
             const file = fileInput.files[0];
             const title = titleInput.value || 'Без названия';
-            const desc = descInput.value || 'Нет описания';
+            const desc = descInput.value || '';
             
             // Проверка, является ли файл изображением
             if (!file.type.match('image.*')) {
-                alert('Пожалуйста, выберите изображение!');
+                showError('Пожалуйста, выберите изображение!');
                 return;
             }
             
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                // Создание объекта изображения
-                const imageObj = {
-                    src: e.target.result,
-                    title: title,
-                    desc: desc,
-                    date: new Date().toLocaleDateString('ru-RU'),
-                    id: 'NEW'
-                };
+            try {
+                showLoading(true);
+                uploadButton.disabled = true;
+                hideError();
                 
-                // Добавляем изображение в начало массива
-                galleryImages.unshift(imageObj);
+                // Загрузка файла в Supabase Storage
+                const fileName = `${Date.now()}_${file.name}`;
+                const { data: uploadData, error: uploadError } = await supabase
+                    .storage
+                    .from('gallery-images')
+                    .upload(fileName, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
                 
-                // Если это первая страница, обновляем отображение
-                if (currentPage === 1) {
-                    renderGalleryPage();
-                } else {
-                    // Если не первая страница, переключаемся на первую
-                    currentPage = 1;
-                    renderGalleryPage();
-                }
+                if (uploadError) throw uploadError;
+                
+                // Получение публичного URL файла
+                const { data: publicUrlData } = supabase
+                    .storage
+                    .from('gallery-images')
+                    .getPublicUrl(fileName);
+                
+                // Сохранение информации об изображении в таблицу
+                const { data: imageData, error: insertError } = await supabase
+                    .from('gallery_images')
+                    .insert([
+                        {
+                            title: title,
+                            description: desc,
+                            image_url: publicUrlData.publicUrl
+                        }
+                    ])
+                    .select();
+                
+                if (insertError) throw insertError;
+                
+                // Обновление галереи
+                await loadGalleryImages();
                 
                 // Очистка формы
                 document.getElementById('uploadForm').reset();
                 
                 alert('Священное изображение успешно добавлено в галерею!');
-            };
-            
-            reader.readAsDataURL(file);
+                
+            } catch (error) {
+                showError('Ошибка загрузки изображения: ' + error.message);
+                console.error('Ошибка загрузки:', error);
+            } finally {
+                showLoading(false);
+                uploadButton.disabled = false;
+            }
         });
         
         // Функция отображения страницы галереи
@@ -753,10 +839,10 @@
                 galleryItem.className = 'gallery-item';
                 
                 galleryItem.innerHTML = `
-                    <img src="${imageObj.src}" alt="${imageObj.title}">
-                    <div class="item-title">${imageObj.title}</div>
-                    <div class="item-desc">${imageObj.desc}</div>
-                    <div class="item-info">ID:${imageObj.id} | ${imageObj.date}</div>
+                    <img src="${imageObj.src}" alt="${imageObj.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmZjRmYSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2VlMDA5MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
+                    <div class="item-title">${escapeHtml(imageObj.title)}</div>
+                    <div class="item-desc">${escapeHtml(imageObj.desc)}</div>
+                    <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
                 `;
                 
                 // Добавляем обработчик клика для открытия в полном размере
@@ -840,7 +926,7 @@
             
             modal.style.display = 'block';
             modalImg.src = src;
-            captionText.innerHTML = title;
+            captionText.innerHTML = escapeHtml(title);
         }
         
         // Закрытие модального окна
@@ -856,24 +942,47 @@
             }
         });
         
-        // Инициализация галереи с примерами изображений (можно удалить при необходимости)
+        // Вспомогательные функции
+        function showLoading(show) {
+            const loading = document.getElementById('loadingIndicator');
+            if (loading) {
+                loading.style.display = show ? 'block' : 'none';
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function hideError() {
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Инициализация при загрузке страницы
         window.addEventListener('load', function() {
-            // Можно добавить начальные изображения для демонстрации
+            // Если вы хотите добавить начальные изображения для демонстрации:
             /*
             galleryImages = [
                 {
+                    id: 'demo1',
                     src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmNjliNCIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPltTVkFLVFlJTVxuSU1BR0VdPC90ZXh0Pjwvc3ZnPg==',
                     title: 'Святая Tai в момент прозрения',
                     desc: 'Божественный момент просветления',
                     date: '15/04/24',
-                    id: '001'
-                },
-                {
-                    src: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2VlMDA5MyIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPltTVkFLVFlJTVxuSU1BR0VdPC90ZXh0Pjwvc3ZnPg==',
-                    title: 'Божественный график',
-                    desc: 'Священные линии пророчества',
-                    date: '14/04/24',
-                    id: '002'
+                    created_at: new Date()
                 }
             ];
             */
