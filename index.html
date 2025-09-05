@@ -1121,6 +1121,11 @@
         let currentOffset = 0;
         const imagesPerPage = 12;
         let isLoading = false;
+        // --- НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ОБНОВЛЕНИЯ ---
+        let activeImageComments = new Set(); // Для отслеживания комментариев
+        let commentsInterval = null;         // Интервал обновления комментариев
+        let galleryPollingInterval = null;   // Интервал обновления списка изображений
+        let lastGalleryImageTimestamp = null;
         
         // Массив популярных эмодзи
         const popularEmojis = [
@@ -1193,26 +1198,51 @@
         }
         
         // Показ страницы
+                // Показ страницы
         function showPage(pageId) {
             // Скрыть все страницы
             document.querySelectorAll('.content-page, .gallery-container').forEach(page => {
                 page.classList.remove('active');
             });
-            
+
+            // Останавливаем интервалы основного чата
+            if (chatInterval) {
+                clearInterval(chatInterval);
+                chatInterval = null;
+            }
+
+            // --- ОСТАНОВКА ИНТЕРВАЛОВ ОБНОВЛЕНИЯ ---
+            // Останавливаем обновление комментариев
+            if (commentsInterval) {
+                clearInterval(commentsInterval);
+                commentsInterval = null;
+                activeImageComments.clear();
+                console.log('Интервал обновления комментариев остановлен.');
+            }
+            // Останавливаем обновление галереи
+            if (galleryPollingInterval) {
+                clearInterval(galleryPollingInterval);
+                galleryPollingInterval = null;
+                lastGalleryImageTimestamp = null;
+                console.log('Интервал обновления галереи остановлен.');
+            }
+            // --- КОНЕЦ ОСТАНОВКИ ---
+
             // Показать выбранную страницу
             if (pageId === 'gallery') {
                 document.getElementById(pageId).classList.add('active');
-                // При открытии галереи загружаем первые изображения
                 currentOffset = 0;
+                // --- ЗАПУСК ИНТЕРВАЛОВ ОБНОВЛЕНИЯ ---
+                startGalleryPolling(); // Запускаем обновление галереи
+                startCommentsPolling(); // Запускаем обновление комментариев
+                // --- КОНЕЦ ЗАПУСКА ---
                 loadGalleryImages();
             } else if (pageId === 'community') {
                 document.getElementById(pageId).classList.add('active');
-                // При открытии сообщества инициализируем чат
-                initChat();
+                initChat(); // Инициализируем основной чат
             } else {
                 document.getElementById(pageId).classList.add('active');
             }
-            
             return false;
         }
         
@@ -1815,21 +1845,29 @@
         // Отображение изображений
                 // Отображение изображений (обновлённая версия)
                 // Отображение изображений (обновлённая версия)
+                // Отображение изображений (обновлённая версия)
         function renderGalleryImages(images) {
             const galleryGrid = document.getElementById('galleryGrid');
+
+            // --- УСТАНОВКА ВРЕМЕННОЙ МЕТКИ ПРИ ПЕРВОЙ ЗАГРУЗКЕ ---
+            if (currentOffset === 0 && images.length > 0 && !lastGalleryImageTimestamp) {
+                lastGalleryImageTimestamp = images[0].created_at;
+                console.log('Установлена временная метка последнего изображения:', lastGalleryImageTimestamp);
+            }
+            // --- КОНЕЦ УСТАНОВКИ ---
+
             images.forEach(imageObj => {
-                // Проверяем, существует ли элемент, чтобы избежать дублирования при "Загрузить ещё"
+                // Проверяем, существует ли элемент, чтобы избежать дублирования
                 if (document.getElementById(`image-${imageObj.id}`)) {
-                     console.log(`Изображение с ID ${imageObj.id} уже отображено.`);
-                     return; // Пропускаем, если уже есть
+                    console.log(`Изображение с ID ${imageObj.id} уже отображено.`);
+                    return;
                 }
 
                 const galleryItem = document.createElement('div');
                 galleryItem.className = 'gallery-item';
                 galleryItem.id = `image-${imageObj.id}`;
-                galleryItem.dataset.imageId = imageObj.id; // Сохраняем ID для удобства
+                galleryItem.dataset.imageId = imageObj.id;
 
-                // Создаем HTML для изображения
                 let imageHTML = `
                     <img src="${imageObj.src}" alt="${imageObj.title}" onerror="this.src='image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmZjRmYSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2VlMDA5MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
                     <div class="item-title">${escapeHtml(imageObj.title)}</div>
@@ -1837,21 +1875,17 @@
                     <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
                 `;
 
-                // Добавляем кнопку удаления для админа (для изображения)
                 if (currentUserRole === 'admin') {
                     imageHTML += `<button class="delete-button" onclick="deleteImage('${imageObj.id}'); event.stopPropagation();">×</button>`;
                 }
 
-                // Добавляем секцию комментариев
                 imageHTML += `
                     <div class="comments-section">
                         <div class="comments-header">Комментарии:</div>
                         <div class="comments-list" id="comments-list-${imageObj.id}">
-                             <!-- Комментарии будут загружены сюда -->
                         </div>
                 `;
 
-                // Форма добавления комментария (видна только авторизованным)
                 if (isLoggedIn) {
                     imageHTML += `
                         <div class="comment-form">
@@ -1860,47 +1894,42 @@
                         </div>
                     `;
                 } else {
-                     // Сообщение для неавторизованных пользователей
-                     imageHTML += `<div style="font-size: 11px; color: #999; text-align: center;">Авторизуйтесь, чтобы комментировать</div>`;
+                    imageHTML += `<div style="font-size: 11px; color: #999; text-align: center;">Авторизуйтесь, чтобы комментировать</div>`;
                 }
 
-                imageHTML += `</div>`; // Закрываем comments-section
-
+                imageHTML += `</div>`;
                 galleryItem.innerHTML = imageHTML;
 
-                // --- ОБРАБОТЧИК КЛИКА ---
-                // Добавляем обработчик клика для открытия в полном размере
+                // Обработчик клика для открытия изображения
                 galleryItem.addEventListener('click', function(e) {
-                    // Проверяем, не произошёл ли клик по интерактивным элементам
                     if (e.target.closest('.delete-button') || e.target.closest('.comment-form') || e.target.closest('.delete-comment-button')) {
-                         // Клик был по кнопке удаления изображения, форме комментариев или кнопке удаления комментария - ничего не делаем.
-                         return;
+                        return;
                     }
-                    // Если клик был вне интерактивных элементов, открываем изображение
                     openFullscreenImage(imageObj.src, imageObj.title);
                 });
-                // --- КОНЕЦ ОБРАБОТЧИКА ---
 
-                // Показываем кнопку удаления изображения при наведении для админа (остаётся без изменений)
+                // Показ кнопки удаления для админа
                 if (currentUserRole === 'admin') {
                     galleryItem.addEventListener('mouseenter', function() {
                         const deleteButton = this.querySelector('.delete-button');
-                        if (deleteButton) {
-                            deleteButton.style.display = 'block';
-                        }
+                        if (deleteButton) deleteButton.style.display = 'block';
                     });
                     galleryItem.addEventListener('mouseleave', function() {
                         const deleteButton = this.querySelector('.delete-button');
-                        if (deleteButton) {
-                            deleteButton.style.display = 'none';
-                        }
+                        if (deleteButton) deleteButton.style.display = 'none';
                     });
                 }
 
                 galleryGrid.appendChild(galleryItem);
 
-                // Загружаем комментарии для этого изображения
-                 loadCommentsForImage(imageObj.id);
+                // --- ЗАГРУЗКА И ОТСЛЕЖИВАНИЕ КОММЕНТАРИЕВ ---
+                loadCommentsForImage(imageObj.id).then(() => {
+                    trackImageComments(imageObj.id);
+                }).catch(error => {
+                    console.error(`Ошибка при первой загрузке комментариев для изображения ${imageObj.id}:`, error);
+                    trackImageComments(imageObj.id); // Все равно начинаем отслеживать
+                });
+                // --- КОНЕЦ ЗАГРУЗКИ И ОТСЛЕЖИВАНИЯ ---
             });
         }
 
@@ -2249,6 +2278,143 @@ async function addComment(imageId) {
             div.textContent = text;
             return div.innerHTML;
         }
+
+        function startCommentsPolling() {
+            if (commentsInterval) clearInterval(commentsInterval);
+            loadActiveComments();
+            commentsInterval = setInterval(loadActiveComments, 5000); // Каждые 5 секунд
+            console.log('Интервал обновления комментариев запущен.');
+        }
+
+        async function loadActiveComments() {
+            const imageIdsToLoad = new Set(activeImageComments);
+            console.log('Обновление комментариев для изображений:', Array.from(imageIdsToLoad));
+            for (const imageId of imageIdsToLoad) {
+                const commentsListElement = document.getElementById(`comments-list-${imageId}`);
+                if (commentsListElement) {
+                    try {
+                        await loadCommentsForImage(imageId);
+                    } catch (error) {
+                        console.error(`Ошибка при обновлении комментариев для изображения ${imageId}:`, error);
+                    }
+                } else {
+                    activeImageComments.delete(imageId);
+                    console.log(`Изображение ${imageId} больше не отображается, перестаем обновлять его комментарии.`);
+                }
+            }
+        }
+
+        function trackImageComments(imageId) {
+            activeImageComments.add(imageId);
+            console.log(`Начато отслеживание комментариев для изображения ${imageId}.`);
+        }
+        // --- Конец управления комментариями ---
+
+        // --- Управление обновлением галереи ---
+        function startGalleryPolling() {
+            if (galleryPollingInterval) clearInterval(galleryPollingInterval);
+            checkForNewGalleryImages();
+            galleryPollingInterval = setInterval(checkForNewGalleryImages, 10000); // Каждые 10 секунд
+            console.log('Интервал обновления галереи запущен.');
+        }
+
+        async function checkForNewGalleryImages() {
+            try {
+                if (!supabase) return;
+                let query = supabase
+                    .from('gallery_images')
+                    .select('id, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                if (lastGalleryImageTimestamp) {
+                    query = query.gt('created_at', lastGalleryImageTimestamp);
+                }
+                const { data, error } = await query;
+                if (error) {
+                    console.error('Ошибка проверки новых изображений:', error);
+                    return;
+                }
+                if (data && data.length > 0) {
+                    console.log(`Найдено ${data.length} новых изображений.`);
+                    lastGalleryImageTimestamp = data[0].created_at;
+                    // Перезагружаем галерею
+                    currentOffset = 0;
+                    document.getElementById('galleryGrid').innerHTML = '';
+                    loadGalleryImages();
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке новых изображений:', error);
+            }
+        }
+
+        function startCommentsPolling() {
+            if (commentsInterval) clearInterval(commentsInterval);
+            loadActiveComments();
+            commentsInterval = setInterval(loadActiveComments, 5000); // Каждые 5 секунд
+            console.log('Интервал обновления комментариев запущен.');
+        }
+
+        async function loadActiveComments() {
+            const imageIdsToLoad = new Set(activeImageComments);
+            console.log('Обновление комментариев для изображений:', Array.from(imageIdsToLoad));
+            for (const imageId of imageIdsToLoad) {
+                const commentsListElement = document.getElementById(`comments-list-${imageId}`);
+                if (commentsListElement) {
+                    try {
+                        await loadCommentsForImage(imageId);
+                    } catch (error) {
+                        console.error(`Ошибка при обновлении комментариев для изображения ${imageId}:`, error);
+                    }
+                } else {
+                    activeImageComments.delete(imageId);
+                    console.log(`Изображение ${imageId} больше не отображается, перестаем обновлять его комментарии.`);
+                }
+            }
+        }
+
+        function trackImageComments(imageId) {
+            activeImageComments.add(imageId);
+            console.log(`Начато отслеживание комментариев для изображения ${imageId}.`);
+        }
+        // --- Конец управления комментариями ---
+
+        // --- Управление обновлением галереи ---
+        function startGalleryPolling() {
+            if (galleryPollingInterval) clearInterval(galleryPollingInterval);
+            checkForNewGalleryImages();
+            galleryPollingInterval = setInterval(checkForNewGalleryImages, 10000); // Каждые 10 секунд
+            console.log('Интервал обновления галереи запущен.');
+        }
+
+        async function checkForNewGalleryImages() {
+            try {
+                if (!supabase) return;
+                let query = supabase
+                    .from('gallery_images')
+                    .select('id, created_at')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                if (lastGalleryImageTimestamp) {
+                    query = query.gt('created_at', lastGalleryImageTimestamp);
+                }
+                const { data, error } = await query;
+                if (error) {
+                    console.error('Ошибка проверки новых изображений:', error);
+                    return;
+                }
+                if (data && data.length > 0) {
+                    console.log(`Найдено ${data.length} новых изображений.`);
+                    lastGalleryImageTimestamp = data[0].created_at;
+                    // Перезагружаем галерею
+                    currentOffset = 0;
+                    document.getElementById('galleryGrid').innerHTML = '';
+                    loadGalleryImages();
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке новых изображений:', error);
+            }
+        }
+        // --- Конец управления галереей ---
         
         // Инициализация при загрузке страницы
         window.addEventListener('load', function() {
@@ -2459,35 +2625,28 @@ async function addComment(imageId) {
 
                 
         // Удаление комментария (только для админа)
+                // Удаление комментария (только для админа)
         async function deleteComment(commentId, imageId) {
-             if (currentUserRole !== 'admin') {
-                  alert('Только администратор может удалять комментарии!');
-                  return;
-             }
-
-             if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
-                  return;
-             }
-
-             try {
-                  if (!supabase) throw new Error('Клиент Supabase не инициализирован');
-
-                  const { error } = await supabase
-                      .from('image_comments')
-                      .delete()
-                      .eq('id', commentId);
-
-                  if (error) throw error;
-
-                  console.log(`Комментарий ${commentId} удален.`);
-
-                  // Перезагружаем комментарии для этого изображения
-                  loadCommentsForImage(imageId);
-
-             } catch (error) {
-                  console.error('Ошибка удаления комментария:', error);
-                  alert('Ошибка при удалении комментария: ' + error.message);
-             }
+            if (currentUserRole !== 'admin') {
+                alert('Только администратор может удалять комментарии!');
+                return;
+            }
+            if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+                return;
+            }
+            try {
+                if (!supabase) throw new Error('Клиент Supabase не инициализирован');
+                const { error } = await supabase
+                    .from('image_comments')
+                    .delete()
+                    .eq('id', commentId);
+                if (error) throw error;
+                console.log(`Комментарий ${commentId} удален.`);
+                loadCommentsForImage(imageId); // Перезагружаем комментарии
+            } catch (error) {
+                console.error('Ошибка удаления комментария:', error);
+                alert('Ошибка при удалении комментария: ' + error.message);
+            }
         }
 
         
