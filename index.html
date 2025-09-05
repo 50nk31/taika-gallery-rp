@@ -211,30 +211,6 @@
             margin-bottom: 10px;
         }
         
-        /* Ссылки навигации */
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            background-color: #ffe6f0;
-            border-bottom: 1px solid #EE0093;
-        }
-        
-        .nav-links a {
-            color: #EE0093;
-            text-decoration: none;
-            padding: 5px 15px;
-            border: 1px solid #EE0093;
-            background-color: #FFF4FA;
-            font-weight: bold;
-        }
-        
-        .nav-links a:hover {
-            background-color: #EE0093;
-            color: white;
-        }
-        
         /* Галерея */
         .gallery-container {
             padding: 15px;
@@ -692,8 +668,14 @@
         const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
         
-        // Инициализация Supabase
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Инициализация Supabase - ИСПРАВЛЕНО
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('Supabase client initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize Supabase client:', error);
+        }
         
         // Функция для отладочного логирования
         function debugLog(message, data = null) {
@@ -737,6 +719,10 @@
         // Загрузка изображений из Supabase
         async function loadGalleryImages() {
             try {
+                if (!supabase) {
+                    throw new Error('Supabase client not initialized');
+                }
+                
                 showLoading(true);
                 hideError();
                 hideSuccess();
@@ -778,6 +764,11 @@
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             debugLog('Начало процесса загрузки изображения');
+            
+            if (!supabase) {
+                showError('Ошибка: Не удалось подключиться к базе данных');
+                return;
+            }
             
             const fileInput = document.getElementById('imageFile');
             const titleInput = document.getElementById('imageTitle');
@@ -832,17 +823,14 @@
                 
                 debugLog('Файл успешно загружен в Storage', uploadData);
                 
-                // Получение публичного URL файла
-                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
-                debugLog('Сгенерирован публичный URL', { publicUrl: publicUrl });
+                // Получение публичного URL файла - ИСПРАВЛЕНО
+                const { data: publicUrlData } = supabase
+                    .storage
+                    .from('gallery-images')
+                    .getPublicUrl(fileName);
                 
-                // Проверим, доступен ли файл по URL
-                try {
-                    const response = await fetch(publicUrl, { method: 'HEAD' });
-                    debugLog('Проверка доступности файла', { status: response.status });
-                } catch (checkError) {
-                    debugLog('Ошибка проверки доступности файла', checkError);
-                }
+                const publicUrl = publicUrlData.publicUrl;
+                debugLog('Сгенерирован публичный URL', { publicUrl: publicUrl });
                 
                 // Сохранение информации об изображении в таблицу
                 debugLog('Сохранение информации в базу данных', { 
