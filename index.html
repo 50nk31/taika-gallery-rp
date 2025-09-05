@@ -712,6 +712,7 @@
                 /* ... (предыдущие стили) ... */
 
         /* Стили для комментариев к изображениям */
+          /* Стили для комментариев к изображениям */
         .comments-section {
             margin-top: 10px;
             border-top: 1px solid #ffe6f0;
@@ -1324,6 +1325,7 @@
         
         // Выход пользователя
                 // Выход пользователя (обновлённая версия)
+                // Выход пользователя (обновлённая версия)
         function logoutUser() {
             // Добавляем системное сообщение о выходе
             if (isLoggedIn) {
@@ -1798,7 +1800,7 @@
 
                 // Добавляем кнопку удаления для админа
                 if (currentUserRole === 'admin') {
-                    imageHTML += `<button class="delete-button" onclick="deleteImage('${imageObj.id}')">×</button>`;
+                    imageHTML += `<button class="delete-button" onclick="deleteImage('${imageObj.id}'); event.stopPropagation();">×</button>`;
                 }
 
                 // Добавляем секцию комментариев
@@ -1815,7 +1817,7 @@
                     imageHTML += `
                         <div class="comment-form">
                             <input type="text" id="comment-input-${imageObj.id}" placeholder="Написать комментарий..." maxlength="200">
-                            <button onclick="addComment('${imageObj.id}')">Отправить</button>
+                            <button onclick="addComment('${imageObj.id}'); event.stopPropagation();">Отправить</button>
                         </div>
                     `;
                 } else {
@@ -1833,6 +1835,7 @@
                     if (e.target.classList.contains('delete-button') ||
                         e.target.tagName === 'INPUT' ||
                         e.target.tagName === 'BUTTON') {
+                        e.stopPropagation(); // Останавливаем всплытие события
                         return;
                     }
                     openFullscreenImage(imageObj.src, imageObj.title);
@@ -1859,6 +1862,126 @@
                 // Загружаем комментарии для этого изображения
                  loadCommentsForImage(imageObj.id);
             });
+        }
+
+        async function loadCommentsForImage(imageId) {
+             try {
+                 if (!supabase) return;
+
+                 const { data, error } = await supabase
+                     .from('image_comments')
+                     .select('id, username, comment, created_at')
+                     .eq('image_id', imageId)
+                     .order('created_at', { ascending: true }); // Сначала старые
+
+                 if (error) {
+                      console.error(`Ошибка загрузки комментариев для изображения ${imageId}:`, error);
+                      // Можно отобразить сообщение об ошибке в блоке комментариев
+                      const commentsList = document.getElementById(`comments-list-${imageId}`);
+                      if (commentsList) {
+                          commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
+                      }
+                      return;
+                 }
+
+                 renderComments(imageId, data);
+
+             } catch (error) {
+                  console.error(`Критическая ошибка загрузки комментариев для изображения ${imageId}:`, error);
+                  const commentsList = document.getElementById(`comments-list-${imageId}`);
+                  if (commentsList) {
+                       commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
+                  }
+             }
+        }
+
+        // Отображение комментариев для изображения
+        function renderComments(imageId, comments) {
+            const commentsList = document.getElementById(`comments-list-${imageId}`);
+            if (!commentsList) return;
+
+            if (comments.length === 0) {
+                 commentsList.innerHTML = `<div style="font-size:11px; color:#999; text-align:center;">Комментариев пока нет</div>`;
+                 return;
+            }
+
+            commentsList.innerHTML = ''; // Очищаем список
+
+            comments.forEach(comment => {
+                 const commentElement = document.createElement('div');
+                 commentElement.className = 'comment';
+                 const formattedTime = new Date(comment.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                 commentElement.innerHTML = `
+                     <div class="comment-header">${escapeHtml(comment.username)} <span style="font-weight:normal; color:#999;">${formattedTime}</span></div>
+                     <div class="comment-content">${escapeHtml(comment.comment)}</div>
+                 `;
+                 commentsList.appendChild(commentElement);
+            });
+
+            // Прокручиваем вниз списка комментариев
+            commentsList.scrollTop = commentsList.scrollHeight;
+        }
+
+
+        // Добавление комментария к изображению
+        async function addComment(imageId) {
+             if (!isLoggedIn || !currentUsername) {
+                  alert('Вы должны быть авторизованы, чтобы оставлять комментарии.');
+                  return;
+             }
+
+             const inputElement = document.getElementById(`comment-input-${imageId}`);
+             if (!inputElement) return;
+
+             const commentText = inputElement.value.trim();
+             if (!commentText) {
+                  alert('Пожалуйста, введите текст комментария.');
+                  return;
+             }
+
+             if (commentText.length > 200) { // Проверка длины
+                  alert('Комментарий слишком длинный (максимум 200 символов).');
+                  return;
+             }
+
+             const button = inputElement.nextElementSibling; // Кнопка "Отправить"
+             const originalText = button.textContent;
+             button.disabled = true;
+             button.textContent = '...';
+
+             try {
+                  if (!supabase) throw new Error('Клиент Supabase не инициализирован');
+
+                  const { data, error } = await supabase
+                      .from('image_comments')
+                      .insert([
+                          {
+                              image_id: imageId,
+                              username: currentUsername,
+                              comment: commentText
+                          }
+                      ])
+                      .select(); // Получаем вставленную запись
+
+                  if (error) throw error;
+
+                  console.log('Комментарий добавлен:', data[0]);
+
+                  // Очищаем поле ввода
+                  inputElement.value = '';
+
+                  // Перезагружаем комментарии для этого изображения
+                  // Можно было бы добавить напрямую в DOM, но проще перезагрузить
+                  loadCommentsForImage(imageId);
+
+             } catch (error) {
+                  console.error('Ошибка добавления комментария:', error);
+                  alert('Ошибка при добавлении комментария: ' + error.message);
+             } finally {
+                  // Восстанавливаем кнопку
+                  button.disabled = false;
+                  button.textContent = originalText;
+             }
         }
 
 
