@@ -968,7 +968,7 @@
     
     <!-- Футер -->
     <div class="footer">
-        Все права принадлежат культу Tai Crypto | Создано в 2033 году<br>
+        Все права принадлежат культу Tai Crypto | Создано в 2024 году<br>
         <a href="#">[Правила]</a> <a href="#">[FAQ]</a> <a href="#">[Архив]</a>
     </div>
 
@@ -1108,10 +1108,10 @@
             // Показать выбранную форму и вкладку
             if (tab === 'login') {
                 document.getElementById('loginForm').classList.add('active');
-                event.target.classList.add('active');
+                document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
             } else if (tab === 'register') {
                 document.getElementById('registerForm').classList.add('active');
-                event.target.classList.add('active');
+                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
             }
         }
         
@@ -1137,7 +1137,7 @@
             
             try {
                 // Проверяем, существует ли пользователь с таким именем
-                const {  existingUsers, error: checkError } = await supabase
+                const { data: existingUsers, error: checkError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('username', username);
@@ -1151,14 +1151,17 @@
                     return;
                 }
                 
+                // Определяем роль пользователя (админ только для Takehiko)
+                const role = username === 'Takehiko' ? 'admin' : 'user';
+                
                 // Регистрируем нового пользователя
                 const { data, error } = await supabase
                     .from('users')
                     .insert([
                         {
                             username: username,
-                            password: password, // В реальном приложении нужно хешировать пароль
-                            role: 'user'
+                            password: password,
+                            role: role
                         }
                     ])
                     .select();
@@ -1187,12 +1190,16 @@
             }
             
             try {
+                console.log('Попытка входа:', { username, password });
+                
                 // Проверяем учетные данные
-                const {  users, error } = await supabase
+                const { data: users, error } = await supabase
                     .from('users')
                     .select('*')
                     .eq('username', username)
-                    .eq('password', password); // В реальном приложении нужно сравнивать хеши
+                    .eq('password', password);
+                
+                console.log('Результат проверки:', { users, error });
                 
                 if (error) {
                     throw new Error('Ошибка входа: ' + error.message);
@@ -1207,6 +1214,8 @@
                 currentUsername = user.username;
                 currentUserRole = user.role || 'user';
                 isLoggedIn = true;
+                
+                console.log('Успешный вход:', { currentUsername, currentUserRole });
                 
                 // Скрываем форму авторизации и показываем чат
                 document.getElementById('authContainer').style.display = 'none';
@@ -1523,7 +1532,7 @@
             
             try {
                 // Получаем информацию об изображении для удаления файла из storage
-                const {  imageData, error: selectError } = await supabase
+                const { data: imageData, error: selectError } = await supabase
                     .from('gallery_images')
                     .select('image_url')
                     .eq('id', imageId)
@@ -1590,6 +1599,9 @@
                     loginUser();
                 }
             });
+            
+            // Создаем админа при загрузке страницы
+            setTimeout(createAdminUser, 1000);
         });
         
         // Загрузка изображений из Supabase
@@ -1771,7 +1783,7 @@
                 const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
                 debugLog('Попытка загрузки файла в Storage', { fileName: fileName });
                 
-                const {  uploadData, error: uploadError } = await supabase
+                const { data: uploadData, error: uploadError } = await supabase
                     .storage
                     .from('gallery-images')
                     .upload(fileName, file, {
@@ -1798,7 +1810,7 @@
                     image_url: publicUrl 
                 });
                 
-                const {  imageData, error: insertError } = await supabase
+                const { data: imageData, error: insertError } = await supabase
                     .from('gallery_images')
                     .insert([
                         {
@@ -1937,35 +1949,39 @@
             
             // Инициализируем счетчик пользователей
             initUserCounter();
-            
-            // Создаем админа при первом запуске
-            createAdminUser();
         });
         
-        // Создание админской учетной записи
+        // Создание админской учетной записи - УЛУЧШЕННОЕ
         async function createAdminUser() {
             try {
-                if (!supabase) return;
+                if (!supabase) {
+                    console.log('Supabase не инициализирован');
+                    return;
+                }
+                
+                console.log('Попытка создания/проверки админской учетной записи...');
                 
                 // Проверяем, существует ли админ
-                const { data: adminUsers, error: checkError } = await supabase
+                const { data: existingUsers, error: checkError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('username', 'Takehiko');
                 
                 if (checkError) {
-                    console.error('Ошибка проверки админа:', checkError);
+                    console.error('Ошибка проверки существующего админа:', checkError);
                     return;
                 }
                 
                 // Если админ не существует, создаем его
-                if (!adminUsers || adminUsers.length === 0) {
-                    const { data, error: insertError } = await supabase
+                if (!existingUsers || existingUsers.length === 0) {
+                    console.log('Админ не найден, создаем новую учетную запись...');
+                    
+                    const { data: insertData, error: insertError } = await supabase
                         .from('users')
                         .insert([
                             {
                                 username: 'Takehiko',
-                                password: '1love', // В реальном приложении нужно хешировать
+                                password: '1love',
                                 role: 'admin'
                             }
                         ])
@@ -1974,12 +1990,27 @@
                     if (insertError) {
                         console.error('Ошибка создания админа:', insertError);
                     } else {
-                        console.log('Админская учетная запись создана успешно');
+                        console.log('Админская учетная запись создана успешно:', insertData);
+                    }
+                } else {
+                    console.log('Админ уже существует:', existingUsers[0]);
+                    // Убедимся, что у админа правильная роль
+                    if (existingUsers[0].role !== 'admin') {
+                        const { error: updateError } = await supabase
+                            .from('users')
+                            .update({ role: 'admin' })
+                            .eq('username', 'Takehiko');
+                        
+                        if (updateError) {
+                            console.error('Ошибка обновления роли админа:', updateError);
+                        } else {
+                            console.log('Роль админа успешно обновлена');
+                        }
                     }
                 }
                 
             } catch (error) {
-                console.error('Ошибка при создании админа:', error);
+                console.error('Ошибка при создании/проверке админа:', error);
             }
         }
         
