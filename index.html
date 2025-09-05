@@ -4,7 +4,6 @@
     <title>TAI CRYPTO - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Ваши существующие стили остаются без изменений */
         body {
             margin: 0;
             padding: 0;
@@ -664,7 +663,7 @@
     <script>
         // Конфигурация Supabase (замените на свои данные)
         const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ;
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
         
         // Инициализация Supabase
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -766,10 +765,7 @@
                 if (uploadError) throw uploadError;
                 
                 // Получение публичного URL файла
-                const { data: publicUrlData } = supabase
-                    .storage
-                    .from('gallery-images')
-                    .getPublicUrl(fileName);
+                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
                 
                 // Сохранение информации об изображении в таблицу
                 const { data: imageData, error: insertError } = await supabase
@@ -778,7 +774,7 @@
                         {
                             title: title,
                             description: desc,
-                            image_url: publicUrlData.publicUrl
+                            image_url: publicUrl
                         }
                     ])
                     .select();
