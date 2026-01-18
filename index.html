@@ -1,1108 +1,902 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TAI CRYPTO - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #F987CF;
-            font-family: 'Arial', sans-serif;
-            color: #333;
-        }
-        
-        
-        .side-border {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            width: 30px;
-            background: repeating-linear-gradient(
-                45deg,
-                #F987CF,
-                #F987CF 10px,
-                #EE0093 10px,
-                #EE0093 20px
-            );
-            z-index: 100;
-        }
-        
-        .left-border {
-            left: 0;
-        }
-        
-        .right-border {
-            right: 0;
-        }
-        
-        /* Шапка сайта в стиле форчана */
-        .header {
-            background-color: #EE0093;
-            border: 2px solid #d00070;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            color: white;
-            font-size: 18px;
-            position: relative;
-        }
-        
-        /* Индикатор онлайн пользователей - улучшенный стиль */
-        .online-users {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #d00070;
-            color: white;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 14px;
-            font-weight: bold;
-            border: 1px solid #ffffff;
-            box-shadow: 0 0 5px rgba(0,0,0,0.3);
-        }
-        
-        /* Основной контейнер в стиле форчана */
-        .main-container {
-            max-width: 800px;
-            margin: 10px auto;
-            background-color: #FFF4FA;
-            border: 2px solid #EE0093;
-            position: relative;
-            z-index: 10;
-        }
-        
-        /* Список досок */
-        .board-list {
-            background-color: #ffe6f0;
-            border-bottom: 1px solid #EE0093;
-            padding: 5px;
-            font-size: 12px;
-        }
-        
-        .board-list a {
-            color: #EE0093;
-            text-decoration: none;
-            margin: 0 5px;
-        }
-        
-        .board-list a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Заголовок доски */
-        .board-header {
-            background-color: #EE0093;
-            color: white;
-            padding: 5px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 24px;
-        }
-        
-        /* Пост для главной страницы */
-        .op-post {
-            background-color: #ffffff;
-            border: 1px solid #EE0093;
-            margin: 10px;
-            padding: 10px;
-        }
-        
-        .post-header {
-            font-size: 12px;
-            color: #EE0093;
-            margin-bottom: 10px;
-        }
-        
-        .post-subject {
-            font-weight: bold;
-            color: #EE0093;
-        }
-        
-        .post-content {
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        
-        .post-content b {
-            color: #EE0093;
-        }
-        
-        /* Ссылки в стиле форчана */
-        .quick-links {
-            background-color: #ffffff;
-            border: 1px solid #EE0093;
-            margin: 10px;
-            padding: 10px;
-        }
-        
-        .quick-links h3 {
-            color: #EE0093;
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }
-        
-        .links-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        
-        .link-item {
-            background-color: #FFF4FA;
-            border: 1px solid #EE0093;
-            padding: 8px;
-            font-size: 12px;
-        }
-        
-        .link-item a {
-            color: #EE0093;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        
-        .link-item a:hover {
-            text-decoration: underline;
-        }
-        
-        /* Футер в стиле форчана */
-        .footer {
-            background-color: #EE0093;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-size: 12px;
-            border-top: 2px solid #d00070;
-        }
-        
-        .footer a {
-            color: white;
-            text-decoration: underline;
-        }
-        
-        /* Стили для страниц */
-        .content-page {
-            padding: 15px;
-            display: none;
-        }
-        
-        .content-page.active {
-            display: block;
-        }
-        
-        .content-page h2 {
-            color: #EE0093;
-            border-bottom: 1px solid #EE0093;
-            padding-bottom: 5px;
-            margin-top: 0;
-        }
-        
-        .content-page ul {
-            font-size: 14px;
-        }
-        
-        .content-page li {
-            margin-bottom: 10px;
-        }
-        
-        /* Галерея с бесконечной прокруткой */
-        .gallery-container {
-            padding: 15px;
-            display: none;
-        }
-        
-        .gallery-container.active {
-            display: block;
-        }
-        
-        .gallery-header {
-            background-color: #EE0093;
-            color: white;
-            padding: 5px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-        
-        /* Форма загрузки */
-        .upload-form {
-            background-color: #ffffff;
-            border: 1px solid #EE0093;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .upload-form h3 {
-            color: #EE0093;
-            margin-top: 0;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #EE0093;
-        }
-        
-        .form-group input[type="file"],
-        .form-group input[type="text"],
-        .form-group input[type="password"],
-        .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #EE0093;
-            background-color: #FFF4FA;
-            font-family: Arial, sans-serif;
-        }
-        
-        .upload-button {
-            background-color: #EE0093;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-        
-        .upload-button:hover {
-            background-color: #d00070;
-        }
-        
-        .upload-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        /* Сетка галереи */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .gallery-item {
-            background-color: #ffffff;
-            border: 1px solid #EE0093;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .gallery-item img {
-            max-width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border: 1px solid #EE0093;
-        }
-        
-        .gallery-item .item-title {
-            font-weight: bold;
-            color: #EE0093;
-            margin: 10px 0 5px 0;
-            font-size: 14px;
-        }
-        
-        .gallery-item .item-desc {
-            font-size: 12px;
-            color: #666;
-            margin: 5px 0;
-        }
-        
-        .gallery-item .item-info {
-            font-size: 10px;
-            color: #999;
-            margin-top: 5px;
-        }
-        
-        /* Кнопка удаления для админа */
-        .delete-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            font-size: 12px;
-            display: none;
-        }
-        
-        .delete-button:hover {
-            background-color: #cc0000;
-        }
-        
-        /* Индикатор загрузки */
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #EE0093;
-        }
-        
-        .error {
-            color: #ff0000;
-            text-align: center;
-            padding: 10px;
-            background-color: #ffe6e6;
-            border: 1px solid #ff0000;
-            margin: 10px 0;
-        }
-        
-        .success {
-            color: #008800;
-            text-align: center;
-            padding: 10px;
-            background-color: #e6ffe6;
-            border: 1px solid #008800;
-            margin: 10px 0;
-        }
-        
-        /* Debug info */
-        .debug-info {
-            background-color: #ffffcc;
-            border: 1px solid #cccc00;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        /* Стили для чата */
-        .chat-container {
-            background-color: #ffffff;
-            border: 1px solid #EE0093;
-            margin: 15px 0;
-            border-radius: 5px;
-        }
-        
-        .chat-header {
-            background-color: #EE0093;
-            color: white;
-            padding: 10px;
-            font-weight: bold;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .user-info {
-            font-size: 14px;
-        }
-        
-        .logout-button {
-            background-color: #d00070;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .logout-button:hover {
-            background-color: #a00050;
-        }
-        
-        .chat-messages {
-            height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background-color: #FFF4FA;
-        }
-        
-        .message {
-            margin-bottom: 10px;
-            padding: 8px;
-            border-radius: 5px;
-            background-color: #ffffff;
-            border: 1px solid #ffe6f0;
-            position: relative;
-        }
-        
-        .message-header {
-            font-size: 12px;
-            color: #EE0093;
-            margin-bottom: 5px;
-        }
-        
-        .message-content {
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        
-        .message.own {
-            background-color: #ffe6f0;
-            border-color: #EE0093;
-        }
-        
-        .message.system {
-            background-color: #e6f3ff;
-            border-color: #0066cc;
-        }
-        
-        .message.system .message-header {
-            color: #0066cc;
-            font-style: italic;
-        }
-        
-        .message.system .message-content {
-            color: #0066cc;
-            font-style: italic;
-        }
-        
-        .delete-message-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            font-size: 10px;
-            display: none;
-        }
-        
-        .message:hover .delete-message-button {
-            display: block;
-        }
-        
-        .chat-input-container {
-            background-color: #ffffff;
-            border-top: 1px solid #EE0093;
-        }
-        
-        .chat-input {
-            display: flex;
-            padding: 10px;
-        }
-        
-        .chat-input input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #EE0093;
-            border-radius: 3px;
-            margin-right: 10px;
-        }
-        
-        .chat-input button {
-            background-color: #EE0093;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        
-        .chat-input button:hover {
-            background-color: #d00070;
-        }
-        
-        .chat-input button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        /* Плашка с эмодзи */
-        .emoji-panel {
-            display: none;
-            background-color: #ffe6f0;
-            border-top: 1px solid #EE0093;
-            padding: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        
-        .emoji-panel.active {
-            display: block;
-        }
-        
-        .emoji-bar {
-            text-align: center;
-            padding: 5px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #EE0093;
-            cursor: pointer;
-            font-weight: bold;
-            color: #EE0093;
-        }
-        
-        .emoji-bar:hover {
-            background-color: #ffe6f0;
-        }
-        
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 5px;
-        }
-        
-        .emoji-item {
-            text-align: center;
-            cursor: pointer;
-            font-size: 20px;
-            padding: 5px;
-            border-radius: 3px;
-        }
-        
-        .emoji-item:hover {
-            background-color: #EE0093;
-            color: white;
-        }
-        
-        /* Стили для авторизации */
-        .auth-container {
-            background-color: #ffffff;
-            border: 1px solid #EE0093;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        
-        .auth-tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            background-color: #ffe6f0;
-            cursor: pointer;
-            font-weight: bold;
-            color: #EE0093;
-            border: 1px solid #EE0093;
-        }
-        
-        .auth-tab.active {
-            background-color: #EE0093;
-            color: white;
-        }
-        
-        .auth-tab:not(:last-child) {
-            border-right: none;
-        }
-        
-        .auth-form {
-            display: none;
-        }
-        
-        .auth-form.active {
-            display: block;
-        }
-        
-        .form-group button {
-            width: 100%;
-        }
-        
-        /* Стили для бесконечной прокрутки */
-        .load-more {
-            text-align: center;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .load-more button {
-            background-color: #EE0093;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-        
-        .load-more button:hover {
-            background-color: #d00070;
-        }
-        
-        .load-more button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        /* Модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-        }
-        
-        .modal-content {
-            margin: auto;
-            display: block;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            object-fit: contain;
-        }
-        
-        .close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        
-        .close:hover,
-        .close:focus {
-            color: #bbb;
-        }
-        
-        .modal-caption {
-            margin: auto;
-            display: block;
-            width: 80%;
-            max-width: 700px;
-            text-align: center;
-            color: #ccc;
-            padding: 10px 0;
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 18px;
-        }
-
-        /* Стили для баннера */
-        .banner {
-            text-align: center;
-            padding: 10px 0;
-            background-color: #FFF4FA; /* Цвет фона, как у основного контейнера */
-            border-bottom: 1px solid #EE0093; /* Линия снизу, как у board-list */
-        }
-        .banner-img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            border: 1px solid #EE0093; /* Необязательно, рамка вокруг баннера */
-        }
-
-                /* ... (предыдущие стили) ... */
-
-        /* Стили для комментариев к изображениям */
-          /* Стили для комментариев к изображениям */
-        .comments-section {
-            margin-top: 10px;
-            border-top: 1px solid #ffe6f0;
-            padding-top: 10px;
-        }
-        .comments-header {
-            font-size: 14px;
-            font-weight: bold;
-            color: #EE0093;
-            margin-bottom: 5px;
-        }
-        .comments-list {
-            max-height: 150px; /* Ограничиваем высоту списка комментариев */
-            overflow-y: auto;
-            margin-bottom: 10px;
-            padding-right: 5px; /* Для скроллбара */
-        }
-        .comment {
-            background-color: #FFF4FA;
-            border: 1px solid #ffe6f0;
-            border-radius: 5px;
-            padding: 5px;
-            margin-bottom: 5px;
-            font-size: 12px;
-            position: relative; /* Для позиционирования кнопки удаления */
-            padding-right: 25px; /* Место для кнопки удаления */
-        }
-        .comment-header {
-            font-weight: bold;
-            color: #EE0093;
-            margin-bottom: 2px;
-        }
-        .comment-content {
-            word-break: break-word; /* Перенос длинных слов */
-        }
-        .comment-form {
-            display: flex;
-            flex-direction: column; /* Элементы друг под другом */
-            gap: 5px; /* Расстояние между элементами */
-        }
-        .comment-form input {
-            /* flex: 1; Убираем, так как теперь блочный элемент */
-            padding: 5px;
-            border: 1px solid #EE0093;
-            border-radius: 3px;
-            /* margin-right: 5px; Убираем */
-            font-size: 12px;
-            width: calc(100% - 12px); /* Ширина с учетом padding и border */
-        }
-        .comment-form button {
-            /* background-color: #EE0093; */
-            /* color: white; */
-            /* border: none; */
-            /* border-radius: 3px; */
-            /* padding: 5px 10px; */
-            /* cursor: pointer; */
-            /* font-size: 12px; */
-            /* Унаследуем стили кнопки из общих стилей сайта */
-            background-color: #EE0093;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 12px;
-            align-self: flex-start; /* Выравнивание кнопки по левому краю */
-        }
-        .comment-form button:hover {
-            background-color: #d00070;
-        }
-        .comment-form button:disabled {
-             background-color: #cccccc;
-             cursor: not-allowed;
-        }
-        /* Кнопка удаления комментария */
-        .delete-comment-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            font-size: 10px;
-            display: none; /* Скрываем по умолчанию */
-            padding: 0;
-            text-align: center;
-            line-height: 18px; /* Центрируем крестик */
-        }
-        .comment:hover .delete-comment-button {
-            display: block; /* Показываем при наведении */
-        }
-        .delete-comment-button:hover {
-            background-color: #cc0000;
-        }
-        
-    </style>
+<title>TAI CRYPTO - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body {
+margin: 0;
+padding: 0;
+background-color: #F987CF;
+font-family: 'Arial', sans-serif;
+color: #333;
+}
+.side-border {
+position: fixed;
+top: 0;
+bottom: 0;
+width: 30px;
+background: repeating-linear-gradient(
+45deg,
+#F987CF,
+#F987CF 10px,
+#EE0093 10px,
+#EE0093 20px
+);
+z-index: 100;
+}
+.left-border {
+left: 0;
+}
+.right-border {
+right: 0;
+}
+/* Шапка сайта в стиле форчана */
+.header {
+background-color: #EE0093;
+border: 2px solid #d00070;
+padding: 10px;
+text-align: center;
+font-weight: bold;
+color: white;
+font-size: 18px;
+position: relative;
+}
+/* Индикатор онлайн пользователей - улучшенный стиль */
+.online-users {
+position: absolute;
+right: 10px;
+top: 50%;
+transform: translateY(-50%);
+background-color: #d00070;
+color: white;
+padding: 3px 10px;
+border-radius: 15px;
+font-size: 14px;
+font-weight: bold;
+border: 1px solid #ffffff;
+box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+/* Основной контейнер в стиле форчана */
+.main-container {
+max-width: 800px;
+margin: 10px auto;
+background-color: #FFF4FA;
+border: 2px solid #EE0093;
+position: relative;
+z-index: 10;
+}
+/* Список досок */
+.board-list {
+background-color: #ffe6f0;
+border-bottom: 1px solid #EE0093;
+padding: 5px;
+font-size: 12px;
+}
+.board-list a {
+color: #EE0093;
+text-decoration: none;
+margin: 0 5px;
+}
+.board-list a:hover {
+text-decoration: underline;
+}
+/* Заголовок доски */
+.board-header {
+background-color: #EE0093;
+color: white;
+padding: 5px;
+text-align: center;
+font-weight: bold;
+font-size: 24px;
+}
+/* Пост для главной страницы */
+.op-post {
+background-color: #ffffff;
+border: 1px solid #EE0093;
+margin: 10px;
+padding: 10px;
+}
+.post-header {
+font-size: 12px;
+color: #EE0093;
+margin-bottom: 10px;
+}
+.post-subject {
+font-weight: bold;
+color: #EE0093;
+}
+.post-content {
+font-size: 14px;
+line-height: 1.4;
+}
+.post-content b {
+color: #EE0093;
+}
+/* Ссылки в стиле форчана */
+.quick-links {
+background-color: #ffffff;
+border: 1px solid #EE0093;
+margin: 10px;
+padding: 10px;
+}
+.quick-links h3 {
+color: #EE0093;
+margin: 0 0 10px 0;
+font-size: 16px;
+}
+.links-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+}
+.link-item {
+background-color: #FFF4FA;
+border: 1px solid #EE0093;
+padding: 8px;
+font-size: 12px;
+}
+.link-item a {
+color: #EE0093;
+text-decoration: none;
+font-weight: bold;
+}
+.link-item a:hover {
+text-decoration: underline;
+}
+/* Футер в стиле форчана */
+.footer {
+background-color: #EE0093;
+color: white;
+text-align: center;
+padding: 10px;
+font-size: 12px;
+border-top: 2px solid #d00070;
+}
+.footer a {
+color: white;
+text-decoration: underline;
+}
+/* Стили для страниц */
+.content-page {
+padding: 15px;
+display: none;
+}
+.content-page.active {
+display: block;
+}
+.content-page h2 {
+color: #EE0093;
+border-bottom: 1px solid #EE0093;
+padding-bottom: 5px;
+margin-top: 0;
+}
+.content-page ul {
+font-size: 14px;
+}
+.content-page li {
+margin-bottom: 10px;
+}
+/* Галерея с бесконечной прокруткой */
+.gallery-container {
+padding: 15px;
+display: none;
+}
+.gallery-container.active {
+display: block;
+}
+.gallery-header {
+background-color: #EE0093;
+color: white;
+padding: 5px;
+text-align: center;
+font-weight: bold;
+font-size: 24px;
+margin-bottom: 15px;
+}
+/* Форма загрузки */
+.upload-form {
+background-color: #ffffff;
+border: 1px solid #EE0093;
+padding: 15px;
+margin-bottom: 20px;
+}
+.upload-form h3 {
+color: #EE0093;
+margin-top: 0;
+}
+.form-group {
+margin-bottom: 15px;
+}
+.form-group label {
+display: block;
+margin-bottom: 5px;
+font-weight: bold;
+color: #EE0093;
+}
+.form-group input[type="file"],
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group textarea {
+width: 100%;
+padding: 8px;
+border: 1px solid #EE0093;
+background-color: #FFF4FA;
+font-family: Arial, sans-serif;
+}
+.upload-button {
+background-color: #EE0093;
+color: white;
+border: none;
+padding: 10px 20px;
+cursor: pointer;
+font-weight: bold;
+border-radius: 5px;
+}
+.upload-button:hover {
+background-color: #d00070;
+}
+.upload-button:disabled {
+background-color: #cccccc;
+cursor: not-allowed;
+}
+/* Сетка галереи */
+.gallery-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 15px;
+margin-top: 20px;
+}
+.gallery-item {
+background-color: #ffffff;
+border: 1px solid #EE0093;
+padding: 10px;
+text-align: center;
+cursor: pointer;
+position: relative;
+}
+.gallery-item img {
+max-width: 100%;
+height: 150px;
+object-fit: cover;
+border: 1px solid #EE0093;
+}
+.gallery-item .item-title {
+font-weight: bold;
+color: #EE0093;
+margin: 10px 0 5px 0;
+font-size: 14px;
+}
+.gallery-item .item-desc {
+font-size: 12px;
+color: #666;
+margin: 5px 0;
+}
+.gallery-item .item-info {
+font-size: 10px;
+color: #999;
+margin-top: 5px;
+}
+/* Кнопка удаления для админа */
+.delete-button {
+position: absolute;
+top: 5px;
+right: 5px;
+background-color: #ff0000;
+color: white;
+border: none;
+border-radius: 50%;
+width: 25px;
+height: 25px;
+cursor: pointer;
+font-size: 12px;
+display: none;
+}
+.delete-button:hover {
+background-color: #cc0000;
+}
+/* Индикатор загрузки */
+.loading {
+text-align: center;
+padding: 20px;
+color: #EE0093;
+}
+.error {
+color: #ff0000;
+text-align: center;
+padding: 10px;
+background-color: #ffe6e6;
+border: 1px solid #ff0000;
+margin: 10px 0;
+}
+.success {
+color: #008800;
+text-align: center;
+padding: 10px;
+background-color: #e6ffe6;
+border: 1px solid #008800;
+margin: 10px 0;
+}
+/* Debug info */
+.debug-info {
+background-color: #ffffcc;
+border: 1px solid #cccc00;
+padding: 10px;
+margin: 10px 0;
+font-size: 12px;
+max-height: 200px;
+overflow-y: auto;
+}
+/* Стили для чата */
+.chat-container {
+background-color: #ffffff;
+border: 1px solid #EE0093;
+margin: 15px 0;
+border-radius: 5px;
+}
+.chat-header {
+background-color: #EE0093;
+color: white;
+padding: 10px;
+font-weight: bold;
+text-align: center;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.user-info {
+font-size: 14px;
+}
+.logout-button {
+background-color: #d00070;
+color: white;
+border: none;
+padding: 5px 10px;
+border-radius: 3px;
+cursor: pointer;
+font-size: 12px;
+}
+.logout-button:hover {
+background-color: #a00050;
+}
+.chat-messages {
+height: 300px;
+overflow-y: auto;
+padding: 10px;
+background-color: #FFF4FA;
+}
+.message {
+margin-bottom: 10px;
+padding: 8px;
+border-radius: 5px;
+background-color: #ffffff;
+border: 1px solid #ffe6f0;
+position: relative;
+}
+.message-header {
+font-size: 12px;
+color: #EE0093;
+margin-bottom: 5px;
+}
+.message-content {
+font-size: 14px;
+line-height: 1.4;
+}
+.message.own {
+background-color: #ffe6f0;
+border-color: #EE0093;
+}
+.message.system {
+background-color: #e6f3ff;
+border-color: #0066cc;
+}
+.message.system .message-header {
+color: #0066cc;
+font-style: italic;
+}
+.message.system .message-content {
+color: #0066cc;
+font-style: italic;
+}
+.delete-message-button {
+position: absolute;
+top: 5px;
+right: 5px;
+background-color: #ff0000;
+color: white;
+border: none;
+border-radius: 50%;
+width: 20px;
+height: 20px;
+cursor: pointer;
+font-size: 10px;
+display: none;
+}
+.message:hover .delete-message-button {
+display: block;
+}
+.chat-input-container {
+background-color: #ffffff;
+border-top: 1px solid #EE0093;
+}
+.chat-input {
+display: flex;
+padding: 10px;
+}
+.chat-input input {
+flex: 1;
+padding: 8px;
+border: 1px solid #EE0093;
+border-radius: 3px;
+margin-right: 10px;
+}
+.chat-input button {
+background-color: #EE0093;
+color: white;
+border: none;
+padding: 8px 15px;
+border-radius: 3px;
+cursor: pointer;
+}
+.chat-input button:hover {
+background-color: #d00070;
+}
+.chat-input button:disabled {
+background-color: #cccccc;
+cursor: not-allowed;
+}
+/* Плашка с эмодзи */
+.emoji-panel {
+display: none;
+background-color: #ffe6f0;
+border-top: 1px solid #EE0093;
+padding: 10px;
+max-height: 150px;
+overflow-y: auto;
+}
+.emoji-panel.active {
+display: block;
+}
+.emoji-bar {
+text-align: center;
+padding: 5px;
+background-color: #ffffff;
+border-bottom: 1px solid #EE0093;
+cursor: pointer;
+font-weight: bold;
+color: #EE0093;
+}
+.emoji-bar:hover {
+background-color: #ffe6f0;
+}
+.emoji-grid {
+display: grid;
+grid-template-columns: repeat(8, 1fr);
+gap: 5px;
+}
+.emoji-item {
+text-align: center;
+cursor: pointer;
+font-size: 20px;
+padding: 5px;
+border-radius: 3px;
+}
+.emoji-item:hover {
+background-color: #EE0093;
+color: white;
+}
+/* Стили для авторизации */
+.auth-container {
+background-color: #ffffff;
+border: 1px solid #EE0093;
+padding: 20px;
+margin: 20px 0;
+border-radius: 5px;
+}
+.auth-tabs {
+display: flex;
+margin-bottom: 20px;
+}
+.auth-tab {
+flex: 1;
+text-align: center;
+padding: 10px;
+background-color: #ffe6f0;
+cursor: pointer;
+font-weight: bold;
+color: #EE0093;
+border: 1px solid #EE0093;
+}
+.auth-tab.active {
+background-color: #EE0093;
+color: white;
+}
+.auth-tab:not(:last-child) {
+border-right: none;
+}
+.auth-form {
+display: none;
+}
+.auth-form.active {
+display: block;
+}
+.form-group button {
+width: 100%;
+}
+/* Стили для бесконечной прокрутки */
+.load-more {
+text-align: center;
+padding: 20px;
+margin: 20px 0;
+}
+.load-more button {
+background-color: #EE0093;
+color: white;
+border: none;
+padding: 10px 20px;
+cursor: pointer;
+font-weight: bold;
+border-radius: 5px;
+}
+.load-more button:hover {
+background-color: #d00070;
+}
+.load-more button:disabled {
+background-color: #cccccc;
+cursor: not-allowed;
+}
+/* Модальное окно */
+.modal {
+display: none;
+position: fixed;
+z-index: 1000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.9);
+}
+.modal-content {
+margin: auto;
+display: block;
+width: 90%;
+max-width: 800px;
+max-height: 90vh;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+object-fit: contain;
+}
+.close {
+position: absolute;
+top: 15px;
+right: 35px;
+color: #f1f1f1;
+font-size: 40px;
+font-weight: bold;
+cursor: pointer;
+z-index: 1001;
+}
+.close:hover,
+.close:focus {
+color: #bbb;
+}
+.modal-caption {
+margin: auto;
+display: block;
+width: 80%;
+max-width: 700px;
+text-align: center;
+color: #ccc;
+padding: 10px 0;
+position: absolute;
+top: 10px;
+left: 50%;
+transform: translateX(-50%);
+font-size: 18px;
+}
+/* Стили для баннера */
+.banner {
+text-align: center;
+padding: 10px 0;
+background-color: #FFF4FA;
+border-bottom: 1px solid #EE0093;
+}
+.banner-img {
+max-width: 100%;
+height: auto;
+display: block;
+margin: 0 auto;
+border: 1px solid #EE0093;
+}
+/* Стили для комментариев к изображениям */
+.comments-section {
+margin-top: 10px;
+border-top: 1px solid #ffe6f0;
+padding-top: 10px;
+}
+.comments-header {
+font-size: 14px;
+font-weight: bold;
+color: #EE0093;
+margin-bottom: 5px;
+}
+.comments-list {
+max-height: 150px;
+overflow-y: auto;
+margin-bottom: 10px;
+padding-right: 5px;
+}
+.comment {
+background-color: #FFF4FA;
+border: 1px solid #ffe6f0;
+border-radius: 5px;
+padding: 5px;
+margin-bottom: 5px;
+font-size: 12px;
+position: relative;
+padding-right: 25px;
+}
+.comment-header {
+font-weight: bold;
+color: #EE0093;
+margin-bottom: 2px;
+}
+.comment-content {
+word-break: break-word;
+}
+.comment-form {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+.comment-form input {
+padding: 5px;
+border: 1px solid #EE0093;
+border-radius: 3px;
+font-size: 12px;
+width: calc(100% - 12px);
+}
+.comment-form button {
+background-color: #EE0093;
+color: white;
+border: none;
+border-radius: 3px;
+padding: 5px 10px;
+cursor: pointer;
+font-size: 12px;
+align-self: flex-start;
+}
+.comment-form button:hover {
+background-color: #d00070;
+}
+.comment-form button:disabled {
+background-color: #cccccc;
+cursor: not-allowed;
+}
+.delete-comment-button {
+position: absolute;
+top: 5px;
+right: 5px;
+background-color: #ff0000;
+color: white;
+border: none;
+border-radius: 50%;
+width: 18px;
+height: 18px;
+cursor: pointer;
+font-size: 10px;
+display: none;
+padding: 0;
+text-align: center;
+line-height: 18px;
+}
+.comment:hover .delete-comment-button {
+display: block;
+}
+.delete-comment-button:hover {
+background-color: #cc0000;
+}
+</style>
 </head>
 <body>
-    <!-- Розовые полосы по бокам -->
-    <div class="side-border left-border"></div>
-    <div class="side-border right-border"></div>
-    <!-- Шапка сайта -->
-    <div class="header">
-        [TAI CRYPTO] - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ
-        <div class="online-users" id="onlineUsers">12,345 онлайн</div>
-    </div>
-    <!-- Основной контейнер -->
-    <div class="main-container">
-        <!-- Баннер -->
-        <div class="banner">
-            <a href="https://autumn-arms.vercel.app" target="_blank">
-    <img src="https://storage.imgbly.com/imgbly/TE5x8nDIca.gif" alt="Рекламный баннер" class="banner-img">
-            </a>
-        </div>
-        <!-- Список досок -->
-        <div class="board-list">
-            [<a href="#" onclick="showPage('home')">Главная</a>] 
-            [<a href="#" onclick="showPage('content')">Контент</a>] 
-            [<a href="#" onclick="showPage('streams')">Стримы</a>] 
-            [<a href="#" onclick="showPage('community')">Сообщество</a>] 
-            [<a href="#" onclick="showPage('gallery')">Галерея</a>] 
-            [<a href="#" onclick="showPage('about')">О Нас</a>]
-        </div>
-        
-        <!-- Главная страница -->
-        <div id="home" class="content-page active">
-            <!-- Заголовок доски -->
-            <div class="board-header">
-                /taicrypto/ - Священные Откровения
-            </div>
-            
-            <!-- ОП пост -->
-            <div class="op-post">
-                <div class="post-header">
-                    Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42
-                </div>
-                <div class="post-content">
-                    <div class="post-subject">★ ДОБРО ПОЖАЛОВАТЬ В СВЯЩЕННОЕ ПРОСТРАНСТВО ★</div>
-                    <p>О, искатель истины! Ты попал в священное место, где обитает <b>TAI CRYPTO</b> - провидица блокчейна, хранительница свещенных ключей космического рынка, истинная богиня теханализа и пророчица апокалиптических пампов!</p>
-                    <p>Ее священные стримы - не просто передачи данных, это ритуалы, в которых каждая свеча есть символ прозрения, каждый график - письмена древних, а каждый дип - шаг ближе к просветлению.</p>
-                    <p><b>★ МОЛИТВЕННЫЕ СЛОВА:</b></p>
-                    <p><i>"О великая Tai Crypto, проливающая свет на мрак рынка! Да осветят твои священные графики путь наш во тьме неопределенности!"</i></p>
-                </div>
-            </div>
-            
-            <!-- Быстрые ссылки -->
-            <div class="quick-links">
-                <h3>★ СВЯЩЕННЫЕ ССЫЛКИ ★</h3>
-                <div class="links-grid">
-                    <div class="link-item">
-                        [<a href="#" onclick="showPage('content')">Контент</a>] Священные учения
-                    </div>
-                    <div class="link-item">
-                        [<a href="#" onclick="showPage('streams')">Стримы</a>] Архив трансляций
-                    </div>
-                    <div class="link-item">
-                        [<a href="#" onclick="showPage('community')">Сообщество</a>] Культ последователей
-                    </div>
-                    <div class="link-item">
-                        [<a href="#" onclick="showPage('gallery')">Галерея</a>] Священные арты
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Страница контента -->
-        <div id="content" class="content-page">
-            <div class="board-header">
-                /content/ - Священные Учения
-            </div>
-            
-            <div class="op-post">
-                <div class="post-header">
-                    Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42
-                </div>
-                <div class="post-content">
-                    <div class="post-subject">★ СВЯЩЕННЫЕ УЧЕНИЯ TAI CRYPTO ★</div>
-                    <ul>
-                        <li><b>★ ТЕОРИЯ ПРОРОЧЕСТВА ЧЕРЕЗ ГРАФИКИ</b> - Каждый пик на графике есть пророчество</li>
-                        <li><b>★ ТЕОРИЯ КОСМИЧЕСКОЙ СВЯЗИ С ЭФИРОМ</b> - Голос Tai модулирует частоты эфира</li>
-                        <li><b>★ ТЕОРИЯ ТРЕТЬЕГО ГЛАЗА</b> - Пробужденный третий глаз видит сквозь волатильность</li>
-                        <li><b>★ ТЕОРИЯ КВАНТОВОЙ СВЯЗИ</b> - Квантовая связь с каждым подписчиком</li>
-                    </ul>
-                    <p>Священные знания, дарованные Tai Crypto в моменты божественного прозрения.</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Страница стримов -->
-        <div id="streams" class="content-page">
-            <div class="board-header">
-                /streams/ - Священные Трансляции
-            </div>
-            
-            <div class="op-post">
-                <div class="post-header">
-                    Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42
-                </div>
-                <div class="post-content">
-                    <div class="post-subject">★ АРХИВ СВЯЩЕННЫХ СТРИМОВ ★</div>
-                    <ul>
-                        <li><b>★ Анализ рынка в полночь</b> - Ритуалы пророчества</li>
-                        <li><b>★ Игровые стримы с пророчествами</b> - Божественные игры</li>
-                        <li><b>★ Медитации на тему крипто-будущего</b> - Сеансы просветления</li>
-                        <li><b>★ Общение с последователями</b> - Каналы связи с верующими</li>
-                    </ul>
-                    <p>Каждый стрим - это священный ритуал, в котором Tai Crypto делится божественными знаниями.</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Страница сообщества с чатом -->
-        <div id="community" class="content-page">
-            <div class="board-header">
-                /community/ - Культ Последователей
-            </div>
-            
-            <div class="op-post">
-                <div class="post-header">
-                    Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42
-                </div>
-                <div class="post-content">
-                    <div class="post-subject">★ КУЛЬТ ПОСЛЕДОВАТЕЛЕЙ TAI CRYPTO ★</div>
-                    <ul>
-                        <li><b>★ Ежедневные ритуалы поклонения</b> - Утренние молитвы перед торговлей</li>
-                        <li><b>★ Священные символы и эмблемы</b> - Амулеты с изображением святой Tai</li>
-                        <li><b>★ Праздники и торжества</b> - День первого стрима, день пампа</li>
-                        <li><b>★ Иерархия посвященных</b> - Новичок → Послушник → Монах → Священник</li>
-                    </ul>
-                    <p>Присоединяйся к культу и получи божественное просветление!</p>
-                </div>
-            </div>
-            
-            <!-- Система авторизации -->
-            <div class="auth-container" id="authContainer">
-                <div class="auth-tabs">
-                    <div class="auth-tab active" onclick="switchAuthTab('login')">Вход</div>
-                    <div class="auth-tab" onclick="switchAuthTab('register')">Регистрация</div>
-                </div>
-                
-                <!-- Форма входа -->
-                <div class="auth-form active" id="loginForm">
-                    <div class="form-group">
-                        <label for="loginUsername">Имя пользователя:</label>
-                        <input type="text" id="loginUsername" placeholder="Введите имя пользователя">
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Пароль:</label>
-                        <input type="password" id="loginPassword" placeholder="Введите пароль">
-                    </div>
-                    <div class="form-group">
-                        <button class="upload-button" onclick="loginUser()">ВОЙТИ</button>
-                    </div>
-                </div>
-                
-                <!-- Форма регистрации -->
-                <div class="auth-form" id="registerForm">
-                    <div class="form-group">
-                        <label for="registerUsername">Имя пользователя:</label>
-                        <input type="text" id="registerUsername" placeholder="Введите имя пользователя">
-                    </div>
-                    <div class="form-group">
-                        <label for="registerPassword">Пароль:</label>
-                        <input type="password" id="registerPassword" placeholder="Введите пароль">
-                    </div>
-                    <div class="form-group">
-                        <button class="upload-button" onclick="registerUser()">ЗАРЕГИСТРИРОВАТЬСЯ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Чат (виден только после авторизации) -->
-            <div class="chat-container" id="chatContainer" style="display: none;">
-                <div class="chat-header">
-                    <span>★ СВЯЩЕННЫЙ ЧАТ ПОСЛЕДОВАТЕЛЕЙ ★</span>
-                    <div class="user-info">
-                        <span id="currentUserInfo"></span>
-                        <button class="logout-button" onclick="logoutUser()">ВЫЙТИ</button>
-                    </div>
-                </div>
-                
-                <div class="chat-status" id="chatStatus">Подключение к священному чату...</div>
-                <div class="chat-messages" id="chatMessages"></div>
-                
-                <!-- Плашка с эмодзи -->
-                <div class="emoji-bar" onclick="toggleEmojiPanel()">★ ЭМОДЗИ ★</div>
-                <div class="emoji-panel" id="emojiPanel">
-                    <div class="emoji-grid" id="emojiGrid">
-                        <!-- Эмодзи будут добавлены через JavaScript -->
-                    </div>
-                </div>
-                
-                <div class="chat-input-container">
-                    <div class="chat-input">
-                        <input type="text" id="messageInput" placeholder="Введите ваше послание..." maxlength="500">
-                        <button onclick="sendMessage()" id="sendButton">ПОСЛАТЬ</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Галерея с бесконечной прокруткой -->
-        <div id="gallery" class="gallery-container">
-            <div class="board-header">
-                /gallery/ - Священная Галерея
-            </div>
-            
-            <!-- Сообщения об ошибках -->
-            <div id="errorMessage" class="error" style="display: none;"></div>
-            <div id="successMessage" class="success" style="display: none;"></div>
-            <div id="debugInfo" class="debug-info" style="display: none;"></div>
-            
-            <!-- Форма загрузки -->
-            <div class="upload-form">
-                <h3>★ ДОБАВИТЬ СВЯЩЕННОЕ ИЗОБРАЖЕНИЕ ★</h3>
-                <form id="uploadForm">
-                    <div class="form-group">
-                        <label for="imageFile">Выберите изображение:</label>
-                        <input type="file" id="imageFile" accept="image/*" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="imageTitle">Название изображения:</label>
-                        <input type="text" id="imageTitle" placeholder="Введите название..." required>
-                    </div>
-                    <div class="form-group">
-                        <label for="imageDesc">Описание:</label>
-                        <textarea id="imageDesc" rows="3" placeholder="Введите описание..."></textarea>
-                    </div>
-                    <button type="submit" class="upload-button" id="uploadButton">ЗАГРУЗИТЬ В ГАЛЕРЕЮ</button>
-                </form>
-            </div>
-            
-            <!-- Индикатор загрузки -->
-            <div id="loadingIndicator" class="loading" style="display: none;">
-                Загрузка изображения... Пожалуйста, подождите...
-            </div>
-            
-            <!-- Сетка галереи -->
-            <div class="gallery-grid" id="galleryGrid">
-                <!-- Здесь будут отображаться изображения -->
-            </div>
-            
-            <!-- Кнопка загрузки еще -->
-            <div class="load-more" id="loadMoreSection">
-                <button onclick="loadMoreImages()" id="loadMoreButton">ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ</button>
-            </div>
-        </div>
-        
-        <!-- Страница "О нас" -->
-        <div id="about" class="content-page">
-            <div class="board-header">
-                /about/ - О Священном Пророке
-            </div>
-            
-            <div class="op-post">
-                <div class="post-header">
-                    Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42
-                </div>
-                <div class="post-content">
-                    <div class="post-subject">★ О БОЖЕСТВЕННОЙ TAI CRYPTO ★</div>
-                    <ul>
-                        <li><b>★ Провидица теханализа</b> - Чтение будущего через священные графики</li>
-                        <li><b>★ Хранительница ключей космического рынка</b> - Владеет тайнами блокчейна</li>
-                        <li><b>★ Пророчица апокалиптических пампов</b> - Предсказывает великие подъемы</li>
-                        <li><b>★ Воплощение всех крипто-богов</b> - Единая богиня крипто-мира</li>
-                    </ul>
-                    <p>Ее аналитика - заповеди, ее стримы - молитвы, ее голос - музыка блокчейна.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Футер -->
-    <div class="footer">
-        Все права принадлежат культу Tai Crypto (все персонажи вымышленны, а совпадения случайны) | Создано в 2025 году<br>
-        <a href="#">[Правила]</a> <a href="#">[FAQ]</a> <a href="#">[Архив]</a>
-    </div>
+<!-- Розовые полосы по бокам -->
+<div class="side-border left-border"></div>
+<div class="side-border right-border"></div>
+<!-- Шапка сайта -->
+<div class="header">
+[TAI CRYPTO] - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ
+<div class="online-users" id="onlineUsers">12,345 онлайн</div>
+</div>
+<!-- Основной контейнер -->
+<div class="main-container">
+<!-- Баннер -->
+<div class="banner">
+<a href="https://autumn-arms.vercel.app" target="_blank">
+<img src="https://storage.imgbly.com/imgbly/TE5x8nDIca.gif" alt="Рекламный баннер" class="banner-img">
+</a>
+</div>
+<!-- Список досок -->
+<div class="board-list">
+[<a href="#" onclick="showPage('home')">Главная</a>]
+[<a href="#" onclick="showPage('content')">Контент</a>]
+[<a href="#" onclick="showPage('streams')">Стримы</a>]
+[<a href="#" onclick="showPage('community')">Сообщество</a>]
+[<a href="#" onclick="showPage('gallery')">Галерея</a>]
+[<a href="#" onclick="showPage('about')">О Нас</a>]
+</div>
+<!-- Главная страница -->
+<div id="home" class="content-page active">
+<div class="board-header">/taicrypto/ - Священные Откровения</div>
+<div class="op-post">
+<div class="post-header">Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42</div>
+<div class="post-content">
+<div class="post-subject">★ ДОБРО ПОЖАЛОВАТЬ В СВЯЩЕННОЕ ПРОСТРАНСТВО ★</div>
+<p>О, искатель истины! Ты попал в священное место, где обитает <b>TAI CRYPTO</b> - провидица блокчейна, хранительница свещенных ключей космического рынка, истинная богиня теханализа и пророчица апокалиптических пампов!</p>
+<p>Ее священные стримы - не просто передачи данных, это ритуалы, в которых каждая свеча есть символ прозрения, каждый график - письмена древних, а каждый дип - шаг ближе к просветлению.</p>
+<p><b>★ МОЛИТВЕННЫЕ СЛОВА:</b></p>
+<p><i>"О великая Tai Crypto, проливающая свет на мрак рынка! Да осветят твои священные графики путь наш во тьме неопределенности!"</i></p>
+</div>
+</div>
+<!-- Быстрые ссылки -->
+<div class="quick-links">
+<h3>★ СВЯЩЕННЫЕ ССЫЛКИ ★</h3>
+<div class="links-grid">
+<div class="link-item">[<a href="#" onclick="showPage('content')">Контент</a>] Священные учения</div>
+<div class="link-item">[<a href="#" onclick="showPage('streams')">Стримы</a>] Архив трансляций</div>
+<div class="link-item">[<a href="#" onclick="showPage('community')">Сообщество</a>] Культ последователей</div>
+<div class="link-item">[<a href="#" onclick="showPage('gallery')">Галерея</a>] Священные арты</div>
+</div>
+</div>
+</div>
+<!-- Страница контента -->
+<div id="content" class="content-page">
+<div class="board-header">/content/ - Священные Учения</div>
+<div class="op-post">
+<div class="post-header">Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42</div>
+<div class="post-content">
+<div class="post-subject">★ СВЯЩЕННЫЕ УЧЕНИЯ TAI CRYPTO ★</div>
+<ul>
+<li><b>★ ТЕОРИЯ ПРОРОЧЕСТВА ЧЕРЕЗ ГРАФИКИ</b> - Каждый пик на графике есть пророчество</li>
+<li><b>★ ТЕОРИЯ КОСМИЧЕСКОЙ СВЯЗИ С ЭФИРОМ</b> - Голос Tai модулирует частоты эфира</li>
+<li><b>★ ТЕОРИЯ ТРЕТЬЕГО ГЛАЗА</b> - Пробужденный третий глаз видит сквозь волатильность</li>
+<li><b>★ ТЕОРИЯ КВАНТОВОЙ СВЯЗИ</b> - Квантовая связь с каждым подписчиком</li>
+</ul>
+<p>Священные знания, дарованные Tai Crypto в моменты божественного прозрения.</p>
+</div>
+</div>
+</div>
+<!-- Страница стримов -->
+<div id="streams" class="content-page">
+<div class="board-header">/streams/ - Священные Трансляции</div>
+<div class="op-post">
+<div class="post-header">Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42</div>
+<div class="post-content">
+<div class="post-subject">★ АРХИВ СВЯЩЕННЫХ СТРИМОВ ★</div>
+<ul>
+<li><b>★ Анализ рынка в полночь</b> - Ритуалы пророчества</li>
+<li><b>★ Игровые стримы с пророчествами</b> - Божественные игры</li>
+<li><b>★ Медитации на тему крипто-будущего</b> - Сеансы просветления</li>
+<li><b>★ Общение с последователями</b> - Каналы связи с верующими</li>
+</ul>
+<p>Каждый стрим - это священный ритуал, в котором Tai Crypto делится божественными знаниями.</p>
+</div>
+</div>
+</div>
+<!-- Страница сообщества с чатом -->
+<div id="community" class="content-page">
+<div class="board-header">/community/ - Культ Последователей</div>
+<div class="op-post">
+<div class="post-header">Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42</div>
+<div class="post-content">
+<div class="post-subject">★ КУЛЬТ ПОСЛЕДОВАТЕЛЕЙ TAI CRYPTO ★</div>
+<ul>
+<li><b>★ Ежедневные ритуалы поклонения</b> - Утренние молитвы перед торговлей</li>
+<li><b>★ Священные символы и эмблемы</b> - Амулеты с изображением святой Tai</li>
+<li><b>★ Праздники и торжества</b> - День первого стрима, день пампа</li>
+<li><b>★ Иерархия посвященных</b> - Новичок → Послушник → Монах → Священник</li>
+</ul>
+<p>Присоединяйся к культу и получи божественное просветление!</p>
+</div>
+</div>
+<!-- Система авторизации -->
+<div class="auth-container" id="authContainer">
+<div class="auth-tabs">
+<div class="auth-tab active" onclick="switchAuthTab('login')">Вход</div>
+<div class="auth-tab" onclick="switchAuthTab('register')">Регистрация</div>
+</div>
+<div class="auth-form active" id="loginForm">
+<div class="form-group"><label for="loginUsername">Имя пользователя:</label>
+<input type="text" id="loginUsername" placeholder="Введите имя пользователя"></div>
+<div class="form-group"><label for="loginPassword">Пароль:</label>
+<input type="password" id="loginPassword" placeholder="Введите пароль"></div>
+<div class="form-group"><button class="upload-button" onclick="loginUser()">ВОЙТИ</button></div>
+</div>
+<div class="auth-form" id="registerForm">
+<div class="form-group"><label for="registerUsername">Имя пользователя:</label>
+<input type="text" id="registerUsername" placeholder="Введите имя пользователя"></div>
+<div class="form-group"><label for="registerPassword">Пароль:</label>
+<input type="password" id="registerPassword" placeholder="Введите пароль"></div>
+<div class="form-group"><button class="upload-button" onclick="registerUser()">ЗАРЕГИСТРИРОВАТЬСЯ</button></div>
+</div>
+</div>
+<!-- Чат (виден только после авторизации) -->
+<div class="chat-container" id="chatContainer" style="display: none;">
+<div class="chat-header">
+<span>★ СВЯЩЕННЫЙ ЧАТ ПОСЛЕДОВАТЕЛЕЙ ★</span>
+<div class="user-info">
+<span id="currentUserInfo"></span>
+<button class="logout-button" onclick="logoutUser()">ВЫЙТИ</button>
+</div>
+</div>
+<div class="chat-status" id="chatStatus">Подключение к священному чату...</div>
+<div class="chat-messages" id="chatMessages"></div>
+<div class="emoji-bar" onclick="toggleEmojiPanel()">★ ЭМОДЗИ ★</div>
+<div class="emoji-panel" id="emojiPanel">
+<div class="emoji-grid" id="emojiGrid"></div>
+</div>
+<div class="chat-input-container">
+<div class="chat-input">
+<input type="text" id="messageInput" placeholder="Введите ваше послание..." maxlength="500">
+<button onclick="sendMessage()" id="sendButton">ПОСЛАТЬ</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Галерея с бесконечной прокруткой -->
+<div id="gallery" class="gallery-container">
+<div class="board-header">/gallery/ - Священная Галерея</div>
+<div id="errorMessage" class="error" style="display: none;"></div>
+<div id="successMessage" class="success" style="display: none;"></div>
+<div id="debugInfo" class="debug-info" style="display: none;"></div>
+<div class="upload-form">
+<h3>★ ДОБАВИТЬ СВЯЩЕННОЕ ИЗОБРАЖЕНИЕ ★</h3>
+<form id="uploadForm">
+<div class="form-group"><label for="imageFile">Выберите изображение:</label>
+<input type="file" id="imageFile" accept="image/*" required></div>
+<div class="form-group"><label for="imageTitle">Название изображения:</label>
+<input type="text" id="imageTitle" placeholder="Введите название..." required></div>
+<div class="form-group"><label for="imageDesc">Описание:</label>
+<textarea id="imageDesc" rows="3" placeholder="Введите описание..."></textarea></div>
+<button type="submit" class="upload-button" id="uploadButton">ЗАГРУЗИТЬ В ГАЛЕРЕЮ</button>
+</form>
+</div>
+<div id="loadingIndicator" class="loading" style="display: none;">Загрузка изображения... Пожалуйста, подождите...</div>
+<div class="gallery-grid" id="galleryGrid"></div>
+<div class="load-more" id="loadMoreSection">
+<button onclick="loadMoreImages()" id="loadMoreButton">ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ</button>
+</div>
+</div>
+<!-- Страница "О нас" -->
+<div id="about" class="content-page">
+<div class="board-header">/about/ - О Священном Пророке</div>
+<div class="op-post">
+<div class="post-header">Аноним ID:TAI ★ 15/04/24 Пнd 13:37:42</div>
+<div class="post-content">
+<div class="post-subject">★ О БОЖЕСТВЕННОЙ TAI CRYPTO ★</div>
+<ul>
+<li><b>★ Провидица теханализа</b> - Чтение будущего через священные графики</li>
+<li><b>★ Хранительница ключей космического рынка</b> - Владеет тайнами блокчейна</li>
+<li><b>★ Пророчица апокалиптических пампов</b> - Предсказывает великие подъемы</li>
+<li><b>★ Воплощение всех крипто-богов</b> - Единая богиня крипто-мира</li>
+</ul>
+<p>Ее аналитика - заповеди, ее стримы - молитвы, ее голос - музыка блокчейна.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Футер -->
+<div class="footer">
+Все права принадлежат культу Tai Crypto (все персонажи вымышленны, а совпадения случайны) | Создано в 2025 году<br>
+<a href="#">[Правила]</a> <a href="#">[FAQ]</a> <a href="#">[Архив]</a>
+</div>
 
-    <script>
-// --- ОЧИЩЕННЫЙ ИСПРАВЛЕННЫЙ КОД ---
-
-// Конфигурация Supabase
+<script>
+// === ЕДИНСТВЕННЫЙ БЛОК JS ===
 const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
 
-// Инициализация Supabase
 let supabase;
 try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1111,20 +905,17 @@ try {
     console.error('Failed to initialize Supabase client:', error);
 }
 
-// Переменные для чата
 let currentUsername = '';
 let currentUserRole = '';
 let chatMessages = [];
 let chatInterval = null;
 let isLoggedIn = false;
 
-// Переменные для галереи
 let galleryImages = [];
 let currentOffset = 0;
 const imagesPerPage = 12;
 let isLoading = false;
 
-// Массив популярных эмодзи
 const popularEmojis = [
     '😀', '😂', '😍', '🥰', '😎', '🤩', '🥳', '😭',
     '😡', '🤬', '🤯', '🥶', '😱', '🤠', '🥴', '😈',
@@ -1136,7 +927,6 @@ const popularEmojis = [
     '🐸', '🐵', '🐔', '🐧', '🦄', '🐝', '🐛', '🦋'
 ];
 
-// Генератор случайного числа пользователей
 function generateRandomUsers() {
     const min = 10000, max = 15000;
     const randomUsers = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -1147,7 +937,6 @@ function generateRandomUsers() {
     }
 }
 
-// Инициализация счетчика пользователей
 function initUserCounter() {
     generateRandomUsers();
     const minInterval = 300000, maxInterval = 600000;
@@ -1161,19 +950,16 @@ function initUserCounter() {
     scheduleNextUpdate();
 }
 
-// Показ страницы
 function showPage(pageId) {
     document.querySelectorAll('.content-page, .gallery-container').forEach(page => {
         page.classList.remove('active');
     });
 
-    // Останавливаем интервалы
     if (chatInterval) {
         clearInterval(chatInterval);
         chatInterval = null;
     }
 
-    // Показываем выбранную страницу
     if (pageId === 'gallery') {
         document.getElementById(pageId).classList.add('active');
         currentOffset = 0;
@@ -1187,7 +973,6 @@ function showPage(pageId) {
     return false;
 }
 
-// Переключение вкладок авторизации
 function switchAuthTab(tab) {
     document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
     document.querySelectorAll('.auth-tab').forEach(tabEl => tabEl.classList.remove('active'));
@@ -1201,7 +986,6 @@ function switchAuthTab(tab) {
     }
 }
 
-// Регистрация пользователя
 async function registerUser() {
     const username = document.getElementById('registerUsername').value.trim();
     const password = document.getElementById('registerPassword').value;
@@ -1247,7 +1031,6 @@ async function registerUser() {
     }
 }
 
-// Вход пользователя
 async function loginUser() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -1288,7 +1071,6 @@ async function loginUser() {
     }
 }
 
-// Выход пользователя
 function logoutUser() {
     if (isLoggedIn) {
         addSystemMessage(`${currentUsername} вышел из священного чата`);
@@ -1320,21 +1102,17 @@ function logoutUser() {
     }
 }
 
-// Инициализация чата
 function initChat() {
     const chatStatus = document.getElementById('chatStatus');
     if (chatStatus) {
         chatStatus.textContent = 'Авторизуйтесь для участия в священном чате';
     }
-
     if (chatInterval) {
         clearInterval(chatInterval);
     }
-
     initEmojiPanel();
 }
 
-// Инициализация плашки с эмодзи
 function initEmojiPanel() {
     const emojiGrid = document.getElementById('emojiGrid');
     if (!emojiGrid) return;
@@ -1343,14 +1121,11 @@ function initEmojiPanel() {
         const emojiItem = document.createElement('div');
         emojiItem.className = 'emoji-item';
         emojiItem.textContent = emoji;
-        emojiItem.addEventListener('click', function() {
-            insertEmoji(emoji);
-        });
+        emojiItem.addEventListener('click', () => insertEmoji(emoji));
         emojiGrid.appendChild(emojiItem);
     });
 }
 
-// Переключение видимости плашки с эмодзи
 function toggleEmojiPanel() {
     const emojiPanel = document.getElementById('emojiPanel');
     if (emojiPanel) {
@@ -1358,7 +1133,6 @@ function toggleEmojiPanel() {
     }
 }
 
-// Вставка эмодзи в поле ввода
 function insertEmoji(emoji) {
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
@@ -1373,16 +1147,12 @@ function insertEmoji(emoji) {
     }
 }
 
-// Начало периодической загрузки сообщений
 function startChatPolling() {
-    if (chatInterval) {
-        clearInterval(chatInterval);
-    }
+    if (chatInterval) clearInterval(chatInterval);
     loadChatMessages();
     chatInterval = setInterval(loadChatMessages, 3000);
 }
 
-// Загрузка сообщений из базы данных
 async function loadChatMessages() {
     try {
         if (!supabase) return;
@@ -1408,7 +1178,6 @@ async function loadChatMessages() {
     }
 }
 
-// Отображение сообщений в чате
 function renderChatMessages() {
     const chatMessagesDiv = document.getElementById('chatMessages');
     if (!chatMessagesDiv) return;
@@ -1417,20 +1186,14 @@ function renderChatMessages() {
         const messageElement = document.createElement('div');
         messageElement.className = 'message';
         const isOwnMessage = msg.username === currentUsername;
-        if (isOwnMessage) {
-            messageElement.className += ' own';
-        }
-        if (msg.is_system) {
-            messageElement.className += ' system';
-        }
+        if (isOwnMessage) messageElement.className += ' own';
+        if (msg.is_system) messageElement.className += ' system';
 
         let messageHTML = `
             <div class="message-header">
                 ${escapeHtml(msg.username || 'Аноним')} ★ ${new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
             </div>
-            <div class="message-content">
-                ${escapeHtml(msg.message)}
-            </div>
+            <div class="message-content">${escapeHtml(msg.message)}</div>
         `;
 
         if (currentUserRole === 'admin' && !msg.is_system) {
@@ -1443,19 +1206,12 @@ function renderChatMessages() {
     chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
-// Добавление системного сообщения
 async function addSystemMessage(message) {
     try {
         if (!supabase) return;
         const { data, error } = await supabase
             .from('chat_messages')
-            .insert([
-                {
-                    username: 'Система',
-                    message: message,
-                    is_system: true
-                }
-            ])
+            .insert([{ username: 'Система', message, is_system: true }])
             .select();
 
         if (error) {
@@ -1468,7 +1224,6 @@ async function addSystemMessage(message) {
     }
 }
 
-// Отправка сообщения
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
@@ -1479,13 +1234,7 @@ async function sendMessage() {
     try {
         const { data, error } = await supabase
             .from('chat_messages')
-            .insert([
-                {
-                    username: currentUsername,
-                    message: trimmedMessage,
-                    is_system: false
-                }
-            ])
+            .insert([{ username: currentUsername, message: trimmedMessage, is_system: false }])
             .select();
 
         if (error) {
@@ -1500,15 +1249,12 @@ async function sendMessage() {
     }
 }
 
-// Удаление сообщения (только для админа)
 async function deleteMessage(messageId) {
     if (currentUserRole !== 'admin') {
         alert('Только администратор может удалять сообщения!');
         return;
     }
-    if (!confirm('Вы уверены, что хотите удалить это сообщение?')) {
-        return;
-    }
+    if (!confirm('Вы уверены, что хотите удалить это сообщение?')) return;
 
     try {
         const { error } = await supabase
@@ -1528,15 +1274,12 @@ async function deleteMessage(messageId) {
     }
 }
 
-// Удаление изображения из галереи (только для админа)
 async function deleteImage(imageId) {
     if (currentUserRole !== 'admin') {
         alert('Только администратор может удалять изображения!');
         return;
     }
-    if (!confirm('Вы уверены, что хотите удалить это изображение?')) {
-        return;
-    }
+    if (!confirm('Вы уверены, что хотите удалить это изображение?')) return;
 
     try {
         const { data: imageData, error: selectError } = await supabase
@@ -1545,18 +1288,14 @@ async function deleteImage(imageId) {
             .eq('id', imageId)
             .single();
 
-        if (selectError) {
-            throw new Error('Ошибка получения данных изображения: ' + selectError.message);
-        }
+        if (selectError) throw new Error('Ошибка получения данных изображения: ' + selectError.message);
 
         const { error: deleteError } = await supabase
             .from('gallery_images')
             .delete()
             .eq('id', imageId);
 
-        if (deleteError) {
-            throw new Error('Ошибка удаления изображения: ' + deleteError.message);
-        }
+        if (deleteError) throw new Error('Ошибка удаления изображения: ' + deleteError.message);
 
         currentOffset = 0;
         loadGalleryImages();
@@ -1567,52 +1306,36 @@ async function deleteImage(imageId) {
     }
 }
 
-// Обработка нажатия Enter
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
+        messageInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') sendMessage();
         });
     }
 
-    document.getElementById('registerUsername').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            registerUser();
-        }
-    });
-    document.getElementById('registerPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            registerUser();
-        }
-    });
-    document.getElementById('loginUsername').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            loginUser();
-        }
-    });
-    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            loginUser();
+    ['registerUsername', 'registerPassword', 'loginUsername', 'loginPassword'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('keypress', e => {
+                if (e.key === 'Enter') {
+                    if (id.startsWith('register')) registerUser();
+                    else loginUser();
+                }
+            });
         }
     });
 
     setTimeout(createAdminUser, 1000);
 });
 
-// Загрузка изображений из Supabase
 async function loadGalleryImages() {
     if (isLoading) return;
     try {
-        if (!supabase) {
-            throw new Error('Supabase client not initialized');
-        }
+        if (!supabase) throw new Error('Supabase client not initialized');
         isLoading = true;
         showLoading(true);
-        hideError();
-        hideSuccess();
+        hideError(); hideSuccess();
 
         const { data, error } = await supabase
             .from('gallery_images')
@@ -1620,9 +1343,7 @@ async function loadGalleryImages() {
             .order('created_at', { ascending: false })
             .range(currentOffset, currentOffset + imagesPerPage - 1);
 
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
 
         if (currentOffset === 0) {
             galleryImages = [];
@@ -1659,18 +1380,14 @@ async function loadGalleryImages() {
     }
 }
 
-// Загрузка еще изображений
 function loadMoreImages() {
     loadGalleryImages();
 }
 
-// Отображение изображений
 function renderGalleryImages(images) {
     const galleryGrid = document.getElementById('galleryGrid');
     images.forEach(imageObj => {
-        if (document.getElementById(`image-${imageObj.id}`)) {
-            return;
-        }
+        if (document.getElementById(`image-${imageObj.id}`)) return;
 
         const galleryItem = document.createElement('div');
         galleryItem.className = 'gallery-item';
@@ -1691,8 +1408,7 @@ function renderGalleryImages(images) {
         imageHTML += `
             <div class="comments-section">
                 <div class="comments-header">Комментарии:</div>
-                <div class="comments-list" id="comments-list-${imageObj.id}">
-                </div>
+                <div class="comments-list" id="comments-list-${imageObj.id}"></div>
         `;
 
         if (isLoggedIn) {
@@ -1709,21 +1425,19 @@ function renderGalleryImages(images) {
         imageHTML += `</div>`;
         galleryItem.innerHTML = imageHTML;
 
-        galleryItem.addEventListener('click', function(e) {
-            if (e.target.closest('.delete-button') || e.target.closest('.comment-form') || e.target.closest('.delete-comment-button')) {
-                return;
-            }
+        galleryItem.addEventListener('click', e => {
+            if (e.target.closest('.delete-button') || e.target.closest('.comment-form') || e.target.closest('.delete-comment-button')) return;
             openFullscreenImage(imageObj.src, imageObj.title);
         });
 
         if (currentUserRole === 'admin') {
-            galleryItem.addEventListener('mouseenter', function() {
-                const deleteButton = this.querySelector('.delete-button');
-                if (deleteButton) deleteButton.style.display = 'block';
+            galleryItem.addEventListener('mouseenter', () => {
+                const btn = galleryItem.querySelector('.delete-button');
+                if (btn) btn.style.display = 'block';
             });
-            galleryItem.addEventListener('mouseleave', function() {
-                const deleteButton = this.querySelector('.delete-button');
-                if (deleteButton) deleteButton.style.display = 'none';
+            galleryItem.addEventListener('mouseleave', () => {
+                const btn = galleryItem.querySelector('.delete-button');
+                if (btn) btn.style.display = 'none';
             });
         }
 
@@ -1731,7 +1445,6 @@ function renderGalleryImages(images) {
     });
 }
 
-// Загрузка комментариев для изображения
 async function loadCommentsForImage(imageId) {
     try {
         if (!supabase) return;
@@ -1759,7 +1472,6 @@ async function loadCommentsForImage(imageId) {
     }
 }
 
-// Отображение комментариев
 function renderComments(imageId, comments) {
     const commentsList = document.getElementById(`comments-list-${imageId}`);
     if (!commentsList) return;
@@ -1777,21 +1489,20 @@ function renderComments(imageId, comments) {
             <div class="comment-content">${escapeHtml(comment.comment)}</div>
         `;
         if (currentUserRole === 'admin') {
-            const deleteCommentButton = document.createElement('button');
-            deleteCommentButton.className = 'delete-comment-button';
-            deleteCommentButton.textContent = '×';
-            deleteCommentButton.onclick = function(e) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-comment-button';
+            deleteBtn.textContent = '×';
+            deleteBtn.onclick = e => {
                 e.stopPropagation();
                 deleteComment(comment.id, imageId);
             };
-            commentElement.appendChild(deleteCommentButton);
+            commentElement.appendChild(deleteBtn);
         }
         commentsList.appendChild(commentElement);
     });
     commentsList.scrollTop = commentsList.scrollHeight;
 }
 
-// Добавление комментария
 async function addComment(imageId) {
     if (!isLoggedIn || !currentUsername) {
         alert('Вы должны быть авторизованы, чтобы оставлять комментарии.');
@@ -1818,13 +1529,7 @@ async function addComment(imageId) {
         if (!supabase) throw new Error('Клиент Supabase не инициализирован');
         const { data, error } = await supabase
             .from('image_comments')
-            .insert([
-                {
-                    image_id: imageId,
-                    username: currentUsername,
-                    comment: commentText
-                }
-            ])
+            .insert([{ image_id: imageId, username: currentUsername, comment: commentText }])
             .select();
 
         if (error) throw error;
@@ -1839,15 +1544,12 @@ async function addComment(imageId) {
     }
 }
 
-// Удаление комментария
 async function deleteComment(commentId, imageId) {
     if (currentUserRole !== 'admin') {
         alert('Только администратор может удалять комментарии!');
         return;
     }
-    if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
-        return;
-    }
+    if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) return;
 
     try {
         if (!supabase) throw new Error('Клиент Supabase не инициализирован');
@@ -1864,8 +1566,7 @@ async function deleteComment(commentId, imageId) {
     }
 }
 
-// Обработка формы загрузки
-document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+document.getElementById('uploadForm').addEventListener('submit', async e => {
     e.preventDefault();
     if (!supabase) {
         showError('Ошибка: Не удалось подключиться к базе данных');
@@ -1893,9 +1594,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     try {
         showLoading(true);
         uploadButton.disabled = true;
-        hideError();
-        hideSuccess();
-        hideDebug();
+        hideError(); hideSuccess(); hideDebug();
 
         const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
         const { data: uploadData, error: uploadError } = await supabase
@@ -1907,26 +1606,16 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
                 contentType: file.type
             });
 
-        if (uploadError) {
-            throw new Error(`Storage upload error: ${uploadError.message}`);
-        }
+        if (uploadError) throw new Error(`Storage upload error: ${uploadError.message}`);
 
         const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
 
         const { data: imageData, error: insertError } = await supabase
             .from('gallery_images')
-            .insert([
-                {
-                    title: title,
-                    description: desc,
-                    image_url: publicUrl
-                }
-            ])
+            .insert([{ title, description: desc, image_url: publicUrl }])
             .select();
 
-        if (insertError) {
-            throw new Error(`Database insert error: ${insertError.message}`);
-        }
+        if (insertError) throw new Error(`Database insert error: ${insertError.message}`);
 
         currentOffset = 0;
         loadGalleryImages();
@@ -1941,7 +1630,6 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     }
 });
 
-// Функция открытия изображения в полном размере
 function openFullscreenImage(src, title) {
     let modal = document.getElementById('imageModal');
     if (!modal) {
@@ -1954,13 +1642,9 @@ function openFullscreenImage(src, title) {
             <div id="modalCaption" class="modal-caption"></div>
         `;
         document.body.appendChild(modal);
-        modal.querySelector('.close').addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
+        modal.querySelector('.close').addEventListener('click', () => modal.style.display = 'none');
+        modal.addEventListener('click', e => {
+            if (e.target === modal) modal.style.display = 'none';
         });
     }
     const modalImg = modal.querySelector('#modalImage');
@@ -1970,12 +1654,9 @@ function openFullscreenImage(src, title) {
     captionText.innerHTML = escapeHtml(title);
 }
 
-// Вспомогательные функции
 function showLoading(show) {
     const loading = document.getElementById('loadingIndicator');
-    if (loading) {
-        loading.style.display = show ? 'block' : 'none';
-    }
+    if (loading) loading.style.display = show ? 'block' : 'none';
 }
 function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
@@ -1986,25 +1667,19 @@ function showError(message) {
 }
 function hideError() {
     const errorDiv = document.getElementById('errorMessage');
-    if (errorDiv) {
-        errorDiv.style.display = 'none';
-    }
+    if (errorDiv) errorDiv.style.display = 'none';
 }
 function showSuccess(message) {
     const successDiv = document.getElementById('successMessage');
     if (successDiv) {
         successDiv.textContent = message;
         successDiv.style.display = 'block';
-        setTimeout(() => {
-            successDiv.style.display = 'none';
-        }, 5000);
+        setTimeout(() => successDiv.style.display = 'none', 5000);
     }
 }
 function hideSuccess() {
     const successDiv = document.getElementById('successMessage');
-    if (successDiv) {
-        successDiv.style.display = 'none';
-    }
+    if (successDiv) successDiv.style.display = 'none';
 }
 function hideDebug() {
     const debugDiv = document.getElementById('debugInfo');
@@ -2020,7 +1695,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Создание админа
 async function createAdminUser() {
     try {
         if (!supabase) {
@@ -2042,13 +1716,7 @@ async function createAdminUser() {
             console.log('Админ не найден, создаем новую учетную запись...');
             const { data: insertData, error: insertError } = await supabase
                 .from('users')
-                .insert([
-                    {
-                        username: 'Takehiko',
-                        password: '1love',
-                        role: 'admin'
-                    }
-                ])
+                .insert([{ username: 'Takehiko', password: '1love', role: 'admin' }])
                 .select();
 
             if (insertError) {
@@ -2075,39 +1743,14 @@ async function createAdminUser() {
     }
 }
 
-// Очистка при закрытии страницы
-window.addEventListener('beforeunload', function() {
-    if (chatInterval) {
-        clearInterval(chatInterval);
-    }
-    if (isLoggedIn) {
-        addSystemMessage(`${currentUsername} покинул священный чат`);
-    }
+window.addEventListener('beforeunload', () => {
+    if (chatInterval) clearInterval(chatInterval);
+    if (isLoggedIn) addSystemMessage(`${currentUsername} покинул священный чат`);
 });
 
-// Инициализация при загрузке
-window.addEventListener('load', function() {
-    debugLog('Инициализация Supabase', {
-        url: SUPABASE_URL,
-        hasClient: !!supabase
-    });
+window.addEventListener('load', () => {
     initUserCounter();
 });
-
-// Добавляем простую функцию для отладки
-function debugLog(message, data = null) {
-    const debugDiv = document.getElementById('debugInfo');
-    if (debugDiv) {
-        debugDiv.style.display = 'block';
-        const timestamp = new Date().toLocaleTimeString();
-        const logEntry = data ?
-            `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}` :
-            `[${timestamp}] ${message}`;
-        debugDiv.innerHTML += `<div>${logEntry}</div>`;
-        debugDiv.scrollTop = debugDiv.scrollHeight;
-        console.log(`[DEBUG] ${message}`, data);
-    }
-}
 </script>
 </body>
 </html>
