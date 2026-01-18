@@ -701,23 +701,18 @@ background-color: #cc0000;
 </style>
 </head>
 <body>
-<!-- Розовые полосы по бокам -->
 <div class="side-border left-border"></div>
 <div class="side-border right-border"></div>
-<!-- Шапка сайта -->
 <div class="header">
 [TAI CRYPTO] - БОЖЕСТВЕННАЯ КРИПТО-БОГИНЯ
 <div class="online-users" id="onlineUsers">12,345 онлайн</div>
 </div>
-<!-- Основной контейнер -->
 <div class="main-container">
-<!-- Баннер -->
 <div class="banner">
 <a href="https://autumn-arms.vercel.app" target="_blank">
 <img src="https://storage.imgbly.com/imgbly/TE5x8nDIca.gif" alt="Рекламный баннер" class="banner-img">
 </a>
 </div>
-<!-- Список досок -->
 <div class="board-list">
 [<a href="#" onclick="showPage('home')">Главная</a>]
 [<a href="#" onclick="showPage('content')">Контент</a>]
@@ -726,7 +721,6 @@ background-color: #cc0000;
 [<a href="#" onclick="showPage('gallery')">Галерея</a>]
 [<a href="#" onclick="showPage('about')">О Нас</a>]
 </div>
-<!-- Главная страница -->
 <div id="home" class="content-page active">
 <div class="board-header">/taicrypto/ - Священные Откровения</div>
 <div class="op-post">
@@ -739,7 +733,6 @@ background-color: #cc0000;
 <p><i>"О великая Tai Crypto, проливающая свет на мрак рынка! Да осветят твои священные графики путь наш во тьме неопределенности!"</i></p>
 </div>
 </div>
-<!-- Быстрые ссылки -->
 <div class="quick-links">
 <h3>★ СВЯЩЕННЫЕ ССЫЛКИ ★</h3>
 <div class="links-grid">
@@ -750,7 +743,6 @@ background-color: #cc0000;
 </div>
 </div>
 </div>
-<!-- Страница контента -->
 <div id="content" class="content-page">
 <div class="board-header">/content/ - Священные Учения</div>
 <div class="op-post">
@@ -767,7 +759,6 @@ background-color: #cc0000;
 </div>
 </div>
 </div>
-<!-- Страница стримов -->
 <div id="streams" class="content-page">
 <div class="board-header">/streams/ - Священные Трансляции</div>
 <div class="op-post">
@@ -784,7 +775,6 @@ background-color: #cc0000;
 </div>
 </div>
 </div>
-<!-- Страница сообщества с чатом -->
 <div id="community" class="content-page">
 <div class="board-header">/community/ - Культ Последователей</div>
 <div class="op-post">
@@ -800,7 +790,6 @@ background-color: #cc0000;
 <p>Присоединяйся к культу и получи божественное просветление!</p>
 </div>
 </div>
-<!-- Система авторизации -->
 <div class="auth-container" id="authContainer">
 <div class="auth-tabs">
 <div class="auth-tab active" onclick="switchAuthTab('login')">Вход</div>
@@ -821,7 +810,6 @@ background-color: #cc0000;
 <div class="form-group"><button class="upload-button" onclick="registerUser()">ЗАРЕГИСТРИРОВАТЬСЯ</button></div>
 </div>
 </div>
-<!-- Чат (виден только после авторизации) -->
 <div class="chat-container" id="chatContainer" style="display: none;">
 <div class="chat-header">
 <span>★ СВЯЩЕННЫЙ ЧАТ ПОСЛЕДОВАТЕЛЕЙ ★</span>
@@ -844,7 +832,6 @@ background-color: #cc0000;
 </div>
 </div>
 </div>
-<!-- Галерея с бесконечной прокруткой -->
 <div id="gallery" class="gallery-container">
 <div class="board-header">/gallery/ - Священная Галерея</div>
 <div id="errorMessage" class="error" style="display: none;"></div>
@@ -868,7 +855,6 @@ background-color: #cc0000;
 <button onclick="loadMoreImages()" id="loadMoreButton">ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ</button>
 </div>
 </div>
-<!-- Страница "О нас" -->
 <div id="about" class="content-page">
 <div class="board-header">/about/ - О Священном Пророке</div>
 <div class="op-post">
@@ -886,7 +872,6 @@ background-color: #cc0000;
 </div>
 </div>
 </div>
-<!-- Футер -->
 <div class="footer">
 Все права принадлежат культу Tai Crypto (все персонажи вымышленны, а совпадения случайны) | Создано в 2025 году<br>
 <a href="#">[Правила]</a> <a href="#">[FAQ]</a> <a href="#">[Архив]</a>
@@ -897,9 +882,10 @@ background-color: #cc0000;
 const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_hMbzs65kAFtCi_C0feSXvQ_DfZRxi7O';
 
-let supabase;
+// Исправлено: переименовано в supabaseClient во избежание конфликта с библиотекой
+let supabaseClient; 
 try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     console.log('Supabase client initialized successfully');
 } catch (error) {
     console.error('Failed to initialize Supabase client:', error);
@@ -1003,7 +989,7 @@ async function registerUser() {
     }
 
     try {
-        const { data: existingUsers, error: checkError } = await supabase
+        const { data: existingUsers, error: checkError } = await supabaseClient
             .from('users')
             .select('*')
             .eq('username', username);
@@ -1016,7 +1002,7 @@ async function registerUser() {
 
         const role = username === 'Takehiko' ? 'admin' : 'user';
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('users')
             .insert([{ username, password, role }])
             .select();
@@ -1040,7 +1026,7 @@ async function loginUser() {
     }
 
     try {
-        const { data: users, error } = await supabase
+        const { data: users, error } = await supabaseClient
             .from('users')
             .select('*')
             .eq('username', username)
@@ -1155,8 +1141,8 @@ function startChatPolling() {
 
 async function loadChatMessages() {
     try {
-        if (!supabase) return;
-        const { data, error } = await supabase
+        if (!supabaseClient) return;
+        const { data, error } = await supabaseClient
             .from('chat_messages')
             .select('*')
             .order('created_at', { ascending: true })
@@ -1208,8 +1194,8 @@ function renderChatMessages() {
 
 async function addSystemMessage(message) {
     try {
-        if (!supabase) return;
-        const { data, error } = await supabase
+        if (!supabaseClient) return;
+        const { data, error } = await supabaseClient
             .from('chat_messages')
             .insert([{ username: 'Система', message, is_system: true }])
             .select();
@@ -1227,12 +1213,12 @@ async function addSystemMessage(message) {
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
-    if (!message || !supabase || !isLoggedIn) return;
+    if (!message || !supabaseClient || !isLoggedIn) return;
 
     const trimmedMessage = message.substring(0, 500);
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('chat_messages')
             .insert([{ username: currentUsername, message: trimmedMessage, is_system: false }])
             .select();
@@ -1257,7 +1243,7 @@ async function deleteMessage(messageId) {
     if (!confirm('Вы уверены, что хотите удалить это сообщение?')) return;
 
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('chat_messages')
             .delete()
             .eq('id', messageId);
@@ -1282,7 +1268,7 @@ async function deleteImage(imageId) {
     if (!confirm('Вы уверены, что хотите удалить это изображение?')) return;
 
     try {
-        const { data: imageData, error: selectError } = await supabase
+        const { data: imageData, error: selectError } = await supabaseClient
             .from('gallery_images')
             .select('image_url')
             .eq('id', imageId)
@@ -1290,7 +1276,7 @@ async function deleteImage(imageId) {
 
         if (selectError) throw new Error('Ошибка получения данных изображения: ' + selectError.message);
 
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await supabaseClient
             .from('gallery_images')
             .delete()
             .eq('id', imageId);
@@ -1332,12 +1318,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadGalleryImages() {
     if (isLoading) return;
     try {
-        if (!supabase) throw new Error('Supabase client not initialized');
+        if (!supabaseClient) throw new Error('Supabase client not initialized');
         isLoading = true;
         showLoading(true);
         hideError(); hideSuccess();
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('gallery_images')
             .select('*')
             .order('created_at', { ascending: false })
@@ -1442,13 +1428,15 @@ function renderGalleryImages(images) {
         }
 
         galleryGrid.appendChild(galleryItem);
+        // Загружаем комментарии сразу после рендеринга карточки
+        loadCommentsForImage(imageObj.id);
     });
 }
 
 async function loadCommentsForImage(imageId) {
     try {
-        if (!supabase) return;
-        const { data, error } = await supabase
+        if (!supabaseClient) return;
+        const { data, error } = await supabaseClient
             .from('image_comments')
             .select('id, username, comment, created_at')
             .eq('image_id', imageId)
@@ -1526,8 +1514,8 @@ async function addComment(imageId) {
     button.textContent = '...';
 
     try {
-        if (!supabase) throw new Error('Клиент Supabase не инициализирован');
-        const { data, error } = await supabase
+        if (!supabaseClient) throw new Error('Клиент Supabase не инициализирован');
+        const { data, error } = await supabaseClient
             .from('image_comments')
             .insert([{ image_id: imageId, username: currentUsername, comment: commentText }])
             .select();
@@ -1552,8 +1540,8 @@ async function deleteComment(commentId, imageId) {
     if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) return;
 
     try {
-        if (!supabase) throw new Error('Клиент Supabase не инициализирован');
-        const { error } = await supabase
+        if (!supabaseClient) throw new Error('Клиент Supabase не инициализирован');
+        const { error } = await supabaseClient
             .from('image_comments')
             .delete()
             .eq('id', commentId);
@@ -1568,7 +1556,7 @@ async function deleteComment(commentId, imageId) {
 
 document.getElementById('uploadForm').addEventListener('submit', async e => {
     e.preventDefault();
-    if (!supabase) {
+    if (!supabaseClient) {
         showError('Ошибка: Не удалось подключиться к базе данных');
         return;
     }
@@ -1597,7 +1585,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e => {
         hideError(); hideSuccess(); hideDebug();
 
         const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-        const { data: uploadData, error: uploadError } = await supabase
+        const { data: uploadData, error: uploadError } = await supabaseClient
             .storage
             .from('gallery-images')
             .upload(fileName, file, {
@@ -1610,7 +1598,7 @@ document.getElementById('uploadForm').addEventListener('submit', async e => {
 
         const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
 
-        const { data: imageData, error: insertError } = await supabase
+        const { data: imageData, error: insertError } = await supabaseClient
             .from('gallery_images')
             .insert([{ title, description: desc, image_url: publicUrl }])
             .select();
@@ -1697,12 +1685,12 @@ function escapeHtml(text) {
 
 async function createAdminUser() {
     try {
-        if (!supabase) {
+        if (!supabaseClient) {
             console.log('Supabase не инициализирован');
             return;
         }
         console.log('Попытка создания/проверки админской учетной записи...');
-        const { data: existingUsers, error: checkError } = await supabase
+        const { data: existingUsers, error: checkError } = await supabaseClient
             .from('users')
             .select('*')
             .eq('username', 'Takehiko');
@@ -1714,7 +1702,7 @@ async function createAdminUser() {
 
         if (!existingUsers || existingUsers.length === 0) {
             console.log('Админ не найден, создаем новую учетную запись...');
-            const { data: insertData, error: insertError } = await supabase
+            const { data: insertData, error: insertError } = await supabaseClient
                 .from('users')
                 .insert([{ username: 'Takehiko', password: '1love', role: 'admin' }])
                 .select();
@@ -1727,7 +1715,7 @@ async function createAdminUser() {
         } else {
             console.log('Админ уже существует:', existingUsers[0]);
             if (existingUsers[0].role !== 'admin') {
-                const { error: updateError } = await supabase
+                const { error: updateError } = await supabaseClient
                     .from('users')
                     .update({ role: 'admin' })
                     .eq('username', 'Takehiko');
