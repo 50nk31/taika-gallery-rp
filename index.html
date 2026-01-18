@@ -1096,952 +1096,726 @@
     </div>
 
     <script>
-        // Конфигурация Supabase
-        const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
-        
-        // Инициализация Supabase
-        let supabase;
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('Supabase client initialized successfully');
-        } catch (error) {
-            console.error('Failed to initialize Supabase client:', error);
-        }
-        
-        // Переменные для чата
-        let currentUsername = '';
-        let currentUserRole = ''; // 'admin' или 'user'
-        let chatMessages = [];
-        let chatInterval = null;
-        let isLoggedIn = false;
-        
-        // Переменные для галереи
-        let galleryImages = [];
-        let currentOffset = 0;
-        const imagesPerPage = 12;
-        let isLoading = false;
-        // --- НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ОБНОВЛЕНИЯ ---
-        let activeImageComments = new Set(); // Для отслеживания комментариев
-        let commentsInterval = null;         // Интервал обновления комментариев
-        let galleryPollingInterval = null;   // Интервал обновления списка изображений
-        let lastGalleryImageTimestamp = null;
-        
-        // Массив популярных эмодзи
-        const popularEmojis = [
-            '😀', '😂', '😍', '🥰', '😎', '🤩', '🥳', '😭',
-            '😡', '🤬', '🤯', '🥶', '😱', '🤠', '🥴', '😈',
-            '👻', '💩', '👍', '👎', '👌', '✌️', '🤟', '🤘',
-            '👏', '🙏', '🔥', '💯', '💪', '👀', '🧠', '💎',
-            '💰', '🚀', '🌙', '⭐', '✨', '⚡', '💥', '💫',
-            '❤️', '💔', '💘', '💝', '💖', '💗', '💓', '💞',
-            '🐾', '🐱', '🐶', '🦊', '🐯', '🦁', '🐮', '🐷',
-            '🐸', '🐵', '🐔', '🐧', '🦄', '🐝', '🐛', '🦋'
-        ];
-        
-        // Функция для генерации случайного числа пользователей
-        function generateRandomUsers() {
-            // Генерируем число от 10000 до 15000
-            const min = 10000;
-            const max = 15000;
-            const randomUsers = Math.floor(Math.random() * (max - min + 1)) + min;
-            
-            // Форматируем число с запятыми
-            const formattedUsers = randomUsers.toLocaleString('ru-RU');
-            
-            // Обновляем отображение
-            const onlineUsersElement = document.getElementById('onlineUsers');
-            if (onlineUsersElement) {
-                onlineUsersElement.textContent = `${formattedUsers} онлайн`;
-            }
-            
-            console.log(`Обновлено количество пользователей: ${formattedUsers}`);
-        }
-        
-        // Функция для отладочного логирования
-        function debugLog(message, data = null) {
-            const debugDiv = document.getElementById('debugInfo');
-            if (debugDiv) {
-                debugDiv.style.display = 'block';
-                const timestamp = new Date().toLocaleTimeString();
-                const logEntry = data ? 
-                    `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}` : 
-                    `[${timestamp}] ${message}`;
-                debugDiv.innerHTML += `<div>${logEntry}</div>`;
-                debugDiv.scrollTop = debugDiv.scrollHeight;
-                console.log(`[DEBUG] ${message}`, data);
-            }
-        }
-        
-        // Инициализация генератора пользователей
-        function initUserCounter() {
-            // Устанавливаем начальное значение
+// --- ОЧИЩЕННЫЙ ИСПРАВЛЕННЫЙ КОД ---
+
+// Конфигурация Supabase
+const SUPABASE_URL = 'https://xuqdnhtygxlzcoxsacld.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1cWRuaHR5Z3hsemNveHNhY2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwODkxNDksImV4cCI6MjA3MjY2NTE0OX0.VGcp9wQzYUwZGhK9IdpyYOJNR-JQVawYL822hho_fLQ';
+
+// Инициализация Supabase
+let supabase;
+try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('Supabase client initialized successfully');
+} catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+}
+
+// Переменные для чата
+let currentUsername = '';
+let currentUserRole = '';
+let chatMessages = [];
+let chatInterval = null;
+let isLoggedIn = false;
+
+// Переменные для галереи
+let galleryImages = [];
+let currentOffset = 0;
+const imagesPerPage = 12;
+let isLoading = false;
+
+// Массив популярных эмодзи
+const popularEmojis = [
+    '😀', '😂', '😍', '🥰', '😎', '🤩', '🥳', '😭',
+    '😡', '🤬', '🤯', '🥶', '😱', '🤠', '🥴', '😈',
+    '👻', '💩', '👍', '👎', '👌', '✌️', '🤟', '🤘',
+    '👏', '🙏', '🔥', '💯', '💪', '👀', '🧠', '💎',
+    '💰', '🚀', '🌙', '⭐', '✨', '⚡', '💥', '💫',
+    '❤️', '💔', '💘', '💝', '💖', '💗', '💓', '💞',
+    '🐾', '🐱', '🐶', '🦊', '🐯', '🦁', '🐮', '🐷',
+    '🐸', '🐵', '🐔', '🐧', '🦄', '🐝', '🐛', '🦋'
+];
+
+// Генератор случайного числа пользователей
+function generateRandomUsers() {
+    const min = 10000, max = 15000;
+    const randomUsers = Math.floor(Math.random() * (max - min + 1)) + min;
+    const formattedUsers = randomUsers.toLocaleString('ru-RU');
+    const onlineUsersElement = document.getElementById('onlineUsers');
+    if (onlineUsersElement) {
+        onlineUsersElement.textContent = `${formattedUsers} онлайн`;
+    }
+}
+
+// Инициализация счетчика пользователей
+function initUserCounter() {
+    generateRandomUsers();
+    const minInterval = 300000, maxInterval = 600000;
+    function scheduleNextUpdate() {
+        const randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
+        setTimeout(() => {
             generateRandomUsers();
-            
-            // Обновляем каждые 5-10 минут (300000-600000 мс)
-            const minInterval = 300000; // 5 минут
-            const maxInterval = 600000; // 10 минут
-            
-            function scheduleNextUpdate() {
-                // Генерируем случайный интервал между 5 и 10 минутами
-                const randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
-                console.log(`Следующее обновление через ${randomInterval / 1000 / 60} минут`);
-                
-                setTimeout(() => {
-                    generateRandomUsers();
-                    scheduleNextUpdate(); // Планируем следующее обновление
-                }, randomInterval);
-            }
-            
-            // Начинаем цикл обновлений
             scheduleNextUpdate();
-        }
-        
-        // Показ страницы
-                // Показ страницы
-        function showPage(pageId) {
-            // Скрыть все страницы
-            document.querySelectorAll('.content-page, .gallery-container').forEach(page => {
-                page.classList.remove('active');
-            });
+        }, randomInterval);
+    }
+    scheduleNextUpdate();
+}
 
-            // Останавливаем интервалы основного чата
-            if (chatInterval) {
-                clearInterval(chatInterval);
-                chatInterval = null;
-            }
+// Показ страницы
+function showPage(pageId) {
+    document.querySelectorAll('.content-page, .gallery-container').forEach(page => {
+        page.classList.remove('active');
+    });
 
-            // --- ОСТАНОВКА ИНТЕРВАЛОВ ОБНОВЛЕНИЯ ---
-            // Останавливаем обновление комментариев
-            if (commentsInterval) {
-                clearInterval(commentsInterval);
-                commentsInterval = null;
-                activeImageComments.clear();
-                console.log('Интервал обновления комментариев остановлен.');
-            }
-            // Останавливаем обновление галереи
-            if (galleryPollingInterval) {
-                clearInterval(galleryPollingInterval);
-                galleryPollingInterval = null;
-                lastGalleryImageTimestamp = null;
-                console.log('Интервал обновления галереи остановлен.');
-            }
-            // --- КОНЕЦ ОСТАНОВКИ ---
+    // Останавливаем интервалы
+    if (chatInterval) {
+        clearInterval(chatInterval);
+        chatInterval = null;
+    }
 
-            // Показать выбранную страницу
-            if (pageId === 'gallery') {
-                document.getElementById(pageId).classList.add('active');
-                currentOffset = 0;
-                // --- ЗАПУСК ИНТЕРВАЛОВ ОБНОВЛЕНИЯ ---
-                startGalleryPolling(); // Запускаем обновление галереи
-                startCommentsPolling(); // Запускаем обновление комментариев
-                // --- КОНЕЦ ЗАПУСКА ---
-                loadGalleryImages();
-            } else if (pageId === 'community') {
-                document.getElementById(pageId).classList.add('active');
-                initChat(); // Инициализируем основной чат
-            } else {
-                document.getElementById(pageId).classList.add('active');
-            }
-            return false;
-        }
-        
-        // Переключение вкладок авторизации
-        function switchAuthTab(tab) {
-            // Скрыть все формы
-            document.querySelectorAll('.auth-form').forEach(form => {
-                form.classList.remove('active');
-            });
-            
-            // Убрать активный класс со всех вкладок
-            document.querySelectorAll('.auth-tab').forEach(tabEl => {
-                tabEl.classList.remove('active');
-            });
-            
-            // Показать выбранную форму и вкладку
-            if (tab === 'login') {
-                document.getElementById('loginForm').classList.add('active');
-                document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
-            } else if (tab === 'register') {
-                document.getElementById('registerForm').classList.add('active');
-                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
-            }
-        }
-        
-        // Регистрация пользователя
-        async function registerUser() {
-            const username = document.getElementById('registerUsername').value.trim();
-            const password = document.getElementById('registerPassword').value;
-            
-            if (!username || !password) {
-                alert('Пожалуйста, заполните все поля!');
-                return;
-            }
-            
-            if (username.length < 3) {
-                alert('Имя пользователя должно быть не менее 3 символов!');
-                return;
-            }
-            
-            if (password.length < 6) {
-                alert('Пароль должен быть не менее 6 символов!');
-                return;
-            }
-            
-            try {
-                // Проверяем, существует ли пользователь с таким именем
-                const { data: existingUsers, error: checkError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('username', username);
-                
-                if (checkError) {
-                    throw new Error('Ошибка проверки пользователя: ' + checkError.message);
-                }
-                
-                if (existingUsers && existingUsers.length > 0) {
-                    alert('Пользователь с таким именем уже существует!');
-                    return;
-                }
-                
-                // Определяем роль пользователя (админ только для Takehiko)
-                const role = username === 'Takehiko' ? 'admin' : 'user';
-                
-                // Регистрируем нового пользователя
-                const { data, error } = await supabase
-                    .from('users')
-                    .insert([
-                        {
-                            username: username,
-                            password: password,
-                            role: role
-                        }
-                    ])
-                    .select();
-                
-                if (error) {
-                    throw new Error('Ошибка регистрации: ' + error.message);
-                }
-                
-                alert('Регистрация успешна! Теперь вы можете войти.');
-                switchAuthTab('login');
-                
-            } catch (error) {
-                console.error('Ошибка регистрации:', error);
-                alert('Ошибка регистрации: ' + error.message);
-            }
-        }
-        
-        // Вход пользователя
-        async function loginUser() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!username || !password) {
-                alert('Пожалуйста, заполните все поля!');
-                return;
-            }
-            
-            try {
-                console.log('Попытка входа:', { username, password });
-                
-                // Проверяем учетные данные
-                const { data: users, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .eq('password', password);
-                
-                console.log('Результат проверки:', { users, error });
-                
-                if (error) {
-                    throw new Error('Ошибка входа: ' + error.message);
-                }
-                
-                if (!users || users.length === 0) {
-                    alert('Неверное имя пользователя или пароль!');
-                    return;
-                }
-                
-                const user = users[0];
-                currentUsername = user.username;
-                currentUserRole = user.role || 'user';
-                isLoggedIn = true;
-                
-                console.log('Успешный вход:', { currentUsername, currentUserRole });
-                
-                // Скрываем форму авторизации и показываем чат
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('chatContainer').style.display = 'block';
-                
-                // Обновляем информацию о пользователе
-                document.getElementById('currentUserInfo').textContent = 
-                    `${currentUsername} ${currentUserRole === 'admin' ? '(Админ)' : ''}`;
-                
-                // Добавляем системное сообщение о входе пользователя
-                addSystemMessage(`${currentUsername} вошел в священный чат`);
-                
-                // Начинаем периодическую загрузку сообщений
-                startChatPolling();
-                
-            } catch (error) {
-                console.error('Ошибка входа:', error);
-                alert('Ошибка входа: ' + error.message);
-            }
-        }
-        
-        // Выход пользователя
-                // Выход пользователя (обновлённая версия)
-                // Выход пользователя (обновлённая версия)
-                // Выход пользователя (обновлённая версия)
-        function logoutUser() {
-            // Добавляем системное сообщение о выходе
-            if (isLoggedIn) {
-                addSystemMessage(`${currentUsername} вышел из священного чата`);
-            }
-            // Очищаем данные пользователя
-            currentUsername = '';
-            currentUserRole = '';
-            isLoggedIn = false;
-            // Останавливаем обновление чата
-            if (chatInterval) {
-                clearInterval(chatInterval);
-                chatInterval = null;
-            }
-            // Скрываем чат и показываем форму авторизации
-            document.getElementById('chatContainer').style.display = 'none';
-            document.getElementById('authContainer').style.display = 'block';
-            // Очищаем поля ввода
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('registerUsername').value = '';
-            document.getElementById('registerPassword').value = '';
-            // Очищаем сообщения чата
-            document.getElementById('chatMessages').innerHTML = '';
+    // Показываем выбранную страницу
+    if (pageId === 'gallery') {
+        document.getElementById(pageId).classList.add('active');
+        currentOffset = 0;
+        loadGalleryImages();
+    } else if (pageId === 'community') {
+        document.getElementById(pageId).classList.add('active');
+        initChat();
+    } else {
+        document.getElementById(pageId).classList.add('active');
+    }
+    return false;
+}
 
-            // Сбрасываем состояние форм комментариев в галерее
-            // Перезагружаем галерею, если она активна, чтобы обновить состояния авторизации и комментариев
-            if (document.getElementById('gallery').classList.contains('active')) {
-                 currentOffset = 0; // Сброс пагинации
-                 // Очищаем галерею перед перезагрузкой
-                 document.getElementById('galleryGrid').innerHTML = '';
-                 loadGalleryImages(); // Перезагрузит галерею с новыми состояниями авторизации
-            }
+// Переключение вкладок авторизации
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+    document.querySelectorAll('.auth-tab').forEach(tabEl => tabEl.classList.remove('active'));
+
+    if (tab === 'login') {
+        document.getElementById('loginForm').classList.add('active');
+        document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+    } else if (tab === 'register') {
+        document.getElementById('registerForm').classList.add('active');
+        document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+    }
+}
+
+// Регистрация пользователя
+async function registerUser() {
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    if (!username || !password) {
+        alert('Пожалуйста, заполните все поля!');
+        return;
+    }
+    if (username.length < 3) {
+        alert('Имя пользователя должно быть не менее 3 символов!');
+        return;
+    }
+    if (password.length < 6) {
+        alert('Пароль должен быть не менее 6 символов!');
+        return;
+    }
+
+    try {
+        const { data: existingUsers, error: checkError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username);
+
+        if (checkError) throw new Error('Ошибка проверки пользователя: ' + checkError.message);
+        if (existingUsers && existingUsers.length > 0) {
+            alert('Пользователь с таким именем уже существует!');
+            return;
         }
-        
-        // Инициализация чата
-        function initChat() {
-            const chatStatus = document.getElementById('chatStatus');
-            if (chatStatus) {
-                chatStatus.textContent = 'Авторизуйтесь для участия в священном чате';
-            }
-            
-            // Останавливаем предыдущий интервал, если есть
-            if (chatInterval) {
-                clearInterval(chatInterval);
-            }
-            
-            // Инициализируем плашку с эмодзи
-            initEmojiPanel();
+
+        const role = username === 'Takehiko' ? 'admin' : 'user';
+
+        const { data, error } = await supabase
+            .from('users')
+            .insert([{ username, password, role }])
+            .select();
+
+        if (error) throw new Error('Ошибка регистрации: ' + error.message);
+
+        alert('Регистрация успешна! Теперь вы можете войти.');
+        switchAuthTab('login');
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        alert('Ошибка регистрации: ' + error.message);
+    }
+}
+
+// Вход пользователя
+async function loginUser() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!username || !password) {
+        alert('Пожалуйста, заполните все поля!');
+        return;
+    }
+
+    try {
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username)
+            .eq('password', password);
+
+        if (error) throw new Error('Ошибка входа: ' + error.message);
+        if (!users || users.length === 0) {
+            alert('Неверное имя пользователя или пароль!');
+            return;
         }
-        
-        // Инициализация плашки с эмодзи
-        function initEmojiPanel() {
-            const emojiGrid = document.getElementById('emojiGrid');
-            if (!emojiGrid) return;
-            
-            emojiGrid.innerHTML = '';
-            
-            popularEmojis.forEach(emoji => {
-                const emojiItem = document.createElement('div');
-                emojiItem.className = 'emoji-item';
-                emojiItem.textContent = emoji;
-                emojiItem.title = emoji;
-                emojiItem.addEventListener('click', function() {
-                    insertEmoji(emoji);
-                });
-                emojiGrid.appendChild(emojiItem);
-            });
-        }
-        
-        // Переключение видимости плашки с эмодзи
-        function toggleEmojiPanel() {
-            const emojiPanel = document.getElementById('emojiPanel');
-            if (emojiPanel) {
-                emojiPanel.classList.toggle('active');
-            }
-        }
-        
-        // Вставка эмодзи в поле ввода
-        function insertEmoji(emoji) {
-            const messageInput = document.getElementById('messageInput');
-            if (messageInput) {
-                const start = messageInput.selectionStart;
-                const end = messageInput.selectionEnd;
-                const text = messageInput.value;
-                const newText = text.substring(0, start) + emoji + text.substring(end);
-                messageInput.value = newText;
-                
-                // Устанавливаем курсор после вставленного эмодзи
-                const newCursorPosition = start + emoji.length;
-                messageInput.setSelectionRange(newCursorPosition, newCursorPosition);
-                messageInput.focus();
-            }
-        }
-        
-        // Начало периодической загрузки сообщений
-        function startChatPolling() {
-            // Останавливаем предыдущий интервал, если есть
-            if (chatInterval) {
-                clearInterval(chatInterval);
-            }
-            
-            // Загружаем сообщения сразу
-            loadChatMessages();
-            
-            // Загружаем сообщения каждые 3 секунды
-            chatInterval = setInterval(loadChatMessages, 3000);
-        }
-        
-        // Загрузка сообщений из базы данных
-        async function loadChatMessages() {
-            try {
-                if (!supabase) return;
-                
-                const { data, error } = await supabase
-                    .from('chat_messages')
-                    .select('*')
-                    .order('created_at', { ascending: true })
-                    .limit(100); // Ограничиваем последние 100 сообщений
-                
-                if (error) {
-                    console.error('Ошибка загрузки сообщений:', error);
-                    return;
-                }
-                
-                // Обновляем только если есть новые сообщения
-                if (data.length !== chatMessages.length || 
-                    (data.length > 0 && chatMessages.length > 0 && 
-                     data[data.length - 1].id !== chatMessages[chatMessages.length - 1].id)) {
-                    
-                    chatMessages = data;
-                    renderChatMessages();
-                }
-                
-            } catch (error) {
-                console.error('Ошибка при загрузке сообщений:', error);
-            }
-        }
-        
-        // Отображение сообщений в чате
-        function renderChatMessages() {
-            const chatMessagesDiv = document.getElementById('chatMessages');
-            if (!chatMessagesDiv) return;
-            
-            chatMessagesDiv.innerHTML = '';
-            
-            chatMessages.forEach(msg => {
-                const messageElement = document.createElement('div');
-                messageElement.className = 'message';
-                
-                // Проверяем, является ли это сообщение от текущего пользователя
-                const isOwnMessage = msg.username === currentUsername;
-                if (isOwnMessage) {
-                    messageElement.className += ' own';
-                }
-                
-                // Проверяем, является ли это системное сообщение
-                if (msg.is_system) {
-                    messageElement.className += ' system';
-                }
-                
-                // Создаем HTML для сообщения
-                let messageHTML = `
-                    <div class="message-header">
-                        ${escapeHtml(msg.username || 'Аноним')} ★ ${new Date(msg.created_at).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}
-                    </div>
-                    <div class="message-content">
-                        ${escapeHtml(msg.message)}
-                    </div>
-                `;
-                
-                // Добавляем кнопку удаления для админа
-                if (currentUserRole === 'admin' && !msg.is_system) {
-                    messageHTML += `<button class="delete-message-button" onclick="deleteMessage('${msg.id}')">×</button>`;
-                }
-                
-                messageElement.innerHTML = messageHTML;
-                chatMessagesDiv.appendChild(messageElement);
-            });
-            
-            // Прокручиваем вниз
-            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-        }
-        
-        // Добавление системного сообщения
-        async function addSystemMessage(message) {
-            try {
-                if (!supabase) return;
-                
-                // Сохраняем системное сообщение в базу данных
-                const { data, error } = await supabase
-                    .from('chat_messages')
-                    .insert([
-                        {
-                            username: 'Система',
-                            message: message,
-                            is_system: true
-                        }
-                    ])
-                    .select();
-                
-                if (error) {
-                    console.error('Ошибка отправки системного сообщения:', error);
-                    return;
-                }
-                
-                // Загружаем обновленный список сообщений
-                loadChatMessages();
-                
-            } catch (error) {
-                console.error('Ошибка при отправке системного сообщения:', error);
-            }
-        }
-        
-        // Отправка сообщения
-        async function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
-            
-            if (!message || !supabase || !isLoggedIn) return;
-            
-            // Ограничиваем длину сообщения
-            const trimmedMessage = message.substring(0, 500);
-            
-            try {
-                // Сохраняем сообщение в базу данных
-                const { data, error } = await supabase
-                    .from('chat_messages')
-                    .insert([
-                        {
-                            username: currentUsername,
-                            message: trimmedMessage,
-                            is_system: false
-                        }
-                    ])
-                    .select();
-                
-                if (error) {
-                    console.error('Ошибка отправки сообщения:', error);
-                    return;
-                }
-                
-                // Очищаем поле ввода
-                messageInput.value = '';
-                
-                // Загружаем обновленный список сообщений
-                loadChatMessages();
-                
-            } catch (error) {
-                console.error('Ошибка при отправке сообщения:', error);
-            }
-        }
-        
-        // Удаление сообщения (только для админа)
-        async function deleteMessage(messageId) {
-            if (currentUserRole !== 'admin') {
-                alert('Только администратор может удалять сообщения!');
-                return;
-            }
-            
-            if (!confirm('Вы уверены, что хотите удалить это сообщение?')) {
-                return;
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('chat_messages')
-                    .delete()
-                    .eq('id', messageId);
-                
-                if (error) {
-                    console.error('Ошибка удаления сообщения:', error);
-                    alert('Ошибка удаления сообщения: ' + error.message);
-                    return;
-                }
-                
-                // Загружаем обновленный список сообщений
-                loadChatMessages();
-                
-            } catch (error) {
-                console.error('Ошибка при удалении сообщения:', error);
-                alert('Ошибка при удалении сообщения: ' + error.message);
-            }
-        }
-        
-        // Удаление изображения из галереи (только для админа)
-        async function deleteImage(imageId) {
-            if (currentUserRole !== 'admin') {
-                alert('Только администратор может удалять изображения!');
-                return;
-            }
-            
-            if (!confirm('Вы уверены, что хотите удалить это изображение?')) {
-                return;
-            }
-            
-            try {
-                // Получаем информацию об изображении для удаления файла из storage
-                const { data: imageData, error: selectError } = await supabase
-                    .from('gallery_images')
-                    .select('image_url')
-                    .eq('id', imageId)
-                    .single();
-                
-                if (selectError) {
-                    throw new Error('Ошибка получения данных изображения: ' + selectError.message);
-                }
-                
-                // Удаляем запись из базы данных
-                const { error: deleteError } = await supabase
-                    .from('gallery_images')
-                    .delete()
-                    .eq('id', imageId);
-                
-                if (deleteError) {
-                    throw new Error('Ошибка удаления изображения: ' + deleteError.message);
-                }
-                
-                // Перезагружаем галерею
-                currentOffset = 0;
-                loadGalleryImages();
-                
-                showSuccess('Изображение успешно удалено!');
-                
-            } catch (error) {
-                console.error('Ошибка при удалении изображения:', error);
-                showError('Ошибка при удалении изображения: ' + error.message);
-            }
-        }
-        
-        // Обработка нажатия Enter в поле ввода сообщения
-        document.addEventListener('DOMContentLoaded', function() {
-            const messageInput = document.getElementById('messageInput');
-            if (messageInput) {
-                messageInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        sendMessage();
-                    }
-                });
-            }
-            
-            // Обработчики для форм регистрации и входа
-            document.getElementById('registerUsername').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    registerUser();
-                }
-            });
-            
-            document.getElementById('registerPassword').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    registerUser();
-                }
-            });
-            
-            document.getElementById('loginUsername').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    loginUser();
-                }
-            });
-            
-            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    loginUser();
-                }
-            });
-            
-            // Создаем админа при загрузке страницы
-            setTimeout(createAdminUser, 1000);
+
+        const user = users[0];
+        currentUsername = user.username;
+        currentUserRole = user.role || 'user';
+        isLoggedIn = true;
+
+        document.getElementById('authContainer').style.display = 'none';
+        document.getElementById('chatContainer').style.display = 'block';
+
+        document.getElementById('currentUserInfo').textContent =
+            `${currentUsername} ${currentUserRole === 'admin' ? '(Админ)' : ''}`;
+
+        addSystemMessage(`${currentUsername} вошел в священный чат`);
+        startChatPolling();
+    } catch (error) {
+        console.error('Ошибка входа:', error);
+        alert('Ошибка входа: ' + error.message);
+    }
+}
+
+// Выход пользователя
+function logoutUser() {
+    if (isLoggedIn) {
+        addSystemMessage(`${currentUsername} вышел из священного чата`);
+    }
+
+    currentUsername = '';
+    currentUserRole = '';
+    isLoggedIn = false;
+
+    if (chatInterval) {
+        clearInterval(chatInterval);
+        chatInterval = null;
+    }
+
+    document.getElementById('chatContainer').style.display = 'none';
+    document.getElementById('authContainer').style.display = 'block';
+
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('registerUsername').value = '';
+    document.getElementById('registerPassword').value = '';
+
+    document.getElementById('chatMessages').innerHTML = '';
+
+    if (document.getElementById('gallery').classList.contains('active')) {
+        currentOffset = 0;
+        document.getElementById('galleryGrid').innerHTML = '';
+        loadGalleryImages();
+    }
+}
+
+// Инициализация чата
+function initChat() {
+    const chatStatus = document.getElementById('chatStatus');
+    if (chatStatus) {
+        chatStatus.textContent = 'Авторизуйтесь для участия в священном чате';
+    }
+
+    if (chatInterval) {
+        clearInterval(chatInterval);
+    }
+
+    initEmojiPanel();
+}
+
+// Инициализация плашки с эмодзи
+function initEmojiPanel() {
+    const emojiGrid = document.getElementById('emojiGrid');
+    if (!emojiGrid) return;
+    emojiGrid.innerHTML = '';
+    popularEmojis.forEach(emoji => {
+        const emojiItem = document.createElement('div');
+        emojiItem.className = 'emoji-item';
+        emojiItem.textContent = emoji;
+        emojiItem.addEventListener('click', function() {
+            insertEmoji(emoji);
         });
-        
-        // Загрузка изображений из Supabase
-        async function loadGalleryImages() {
-            if (isLoading) return;
-            
-            try {
-                if (!supabase) {
-                    throw new Error('Supabase client not initialized');
-                }
-                
-                isLoading = true;
-                showLoading(true);
-                hideError();
-                hideSuccess();
-                
-                debugLog('Загрузка изображений из базы данных', { offset: currentOffset, limit: imagesPerPage });
-                
-                const { data, error } = await supabase
-                    .from('gallery_images')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .range(currentOffset, currentOffset + imagesPerPage - 1);
-                
-                if (error) {
-                    debugLog('Ошибка при загрузке изображений', error);
-                    throw error;
-                }
-                
-                debugLog('Получены данные изображений', { count: data.length });
-                
-                // Если это первая загрузка, очищаем галерею
-                if (currentOffset === 0) {
-                    galleryImages = [];
-                    document.getElementById('galleryGrid').innerHTML = '';
-                }
-                
-                // Добавляем новые изображения
-                const newImages = data.map(img => ({
-                    id: img.id,
-                    src: img.image_url,
-                    title: img.title,
-                    desc: img.description || 'Нет описания',
-                    date: new Date(img.created_at).toLocaleDateString('ru-RU'),
-                    created_at: img.created_at
-                }));
-                
-                galleryImages = galleryImages.concat(newImages);
-                
-                // Отображаем изображения
-                renderGalleryImages(newImages);
-                
-                // Обновляем offset для следующей загрузки
-                currentOffset += data.length;
-                
-                // Скрываем кнопку "Загрузить еще", если больше нет изображений
-                const loadMoreButton = document.getElementById('loadMoreButton');
-                if (data.length < imagesPerPage) {
-                    loadMoreButton.disabled = true;
-                    loadMoreButton.textContent = 'БОЛЬШЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ НЕТ';
-                } else {
-                    loadMoreButton.disabled = false;
-                    loadMoreButton.textContent = 'ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ';
-                }
-                
-            } catch (error) {
-                showError('Ошибка загрузки изображений: ' + error.message);
-                console.error('Ошибка загрузки изображений:', error);
-                debugLog('Критическая ошибка загрузки', error);
-            } finally {
-                isLoading = false;
-                showLoading(false);
-            }
+        emojiGrid.appendChild(emojiItem);
+    });
+}
+
+// Переключение видимости плашки с эмодзи
+function toggleEmojiPanel() {
+    const emojiPanel = document.getElementById('emojiPanel');
+    if (emojiPanel) {
+        emojiPanel.classList.toggle('active');
+    }
+}
+
+// Вставка эмодзи в поле ввода
+function insertEmoji(emoji) {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        const start = messageInput.selectionStart;
+        const end = messageInput.selectionEnd;
+        const text = messageInput.value;
+        const newText = text.substring(0, start) + emoji + text.substring(end);
+        messageInput.value = newText;
+        const newCursorPosition = start + emoji.length;
+        messageInput.setSelectionRange(newCursorPosition, newCursorPosition);
+        messageInput.focus();
+    }
+}
+
+// Начало периодической загрузки сообщений
+function startChatPolling() {
+    if (chatInterval) {
+        clearInterval(chatInterval);
+    }
+    loadChatMessages();
+    chatInterval = setInterval(loadChatMessages, 3000);
+}
+
+// Загрузка сообщений из базы данных
+async function loadChatMessages() {
+    try {
+        if (!supabase) return;
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .select('*')
+            .order('created_at', { ascending: true })
+            .limit(100);
+
+        if (error) {
+            console.error('Ошибка загрузки сообщений:', error);
+            return;
         }
-        
-        // Загрузка еще изображений
-        function loadMoreImages() {
-            loadGalleryImages();
+
+        if (data.length !== chatMessages.length ||
+            (data.length > 0 && chatMessages.length > 0 &&
+                data[data.length - 1].id !== chatMessages[chatMessages.length - 1].id)) {
+            chatMessages = data;
+            renderChatMessages();
         }
-        
-        // Отображение изображений
-                // Отображение изображений (обновлённая версия)
-                // Отображение изображений (обновлённая версия)
-                // Отображение изображений (обновлённая версия)
-        function renderGalleryImages(images) {
-            const galleryGrid = document.getElementById('galleryGrid');
+    } catch (error) {
+        console.error('Ошибка при загрузке сообщений:', error);
+    }
+}
 
-            // --- УСТАНОВКА ВРЕМЕННОЙ МЕТКИ ПРИ ПЕРВОЙ ЗАГРУЗКЕ ---
-            if (currentOffset === 0 && images.length > 0 && !lastGalleryImageTimestamp) {
-                lastGalleryImageTimestamp = images[0].created_at;
-                console.log('Установлена временная метка последнего изображения:', lastGalleryImageTimestamp);
+// Отображение сообщений в чате
+function renderChatMessages() {
+    const chatMessagesDiv = document.getElementById('chatMessages');
+    if (!chatMessagesDiv) return;
+    chatMessagesDiv.innerHTML = '';
+    chatMessages.forEach(msg => {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message';
+        const isOwnMessage = msg.username === currentUsername;
+        if (isOwnMessage) {
+            messageElement.className += ' own';
+        }
+        if (msg.is_system) {
+            messageElement.className += ' system';
+        }
+
+        let messageHTML = `
+            <div class="message-header">
+                ${escapeHtml(msg.username || 'Аноним')} ★ ${new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+            <div class="message-content">
+                ${escapeHtml(msg.message)}
+            </div>
+        `;
+
+        if (currentUserRole === 'admin' && !msg.is_system) {
+            messageHTML += `<button class="delete-message-button" onclick="deleteMessage('${msg.id}')">×</button>`;
+        }
+
+        messageElement.innerHTML = messageHTML;
+        chatMessagesDiv.appendChild(messageElement);
+    });
+    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+}
+
+// Добавление системного сообщения
+async function addSystemMessage(message) {
+    try {
+        if (!supabase) return;
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .insert([
+                {
+                    username: 'Система',
+                    message: message,
+                    is_system: true
+                }
+            ])
+            .select();
+
+        if (error) {
+            console.error('Ошибка отправки системного сообщения:', error);
+            return;
+        }
+        loadChatMessages();
+    } catch (error) {
+        console.error('Ошибка при отправке системного сообщения:', error);
+    }
+}
+
+// Отправка сообщения
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    if (!message || !supabase || !isLoggedIn) return;
+
+    const trimmedMessage = message.substring(0, 500);
+
+    try {
+        const { data, error } = await supabase
+            .from('chat_messages')
+            .insert([
+                {
+                    username: currentUsername,
+                    message: trimmedMessage,
+                    is_system: false
+                }
+            ])
+            .select();
+
+        if (error) {
+            console.error('Ошибка отправки сообщения:', error);
+            return;
+        }
+
+        messageInput.value = '';
+        loadChatMessages();
+    } catch (error) {
+        console.error('Ошибка при отправке сообщения:', error);
+    }
+}
+
+// Удаление сообщения (только для админа)
+async function deleteMessage(messageId) {
+    if (currentUserRole !== 'admin') {
+        alert('Только администратор может удалять сообщения!');
+        return;
+    }
+    if (!confirm('Вы уверены, что хотите удалить это сообщение?')) {
+        return;
+    }
+
+    try {
+        const { error } = await supabase
+            .from('chat_messages')
+            .delete()
+            .eq('id', messageId);
+
+        if (error) {
+            console.error('Ошибка удаления сообщения:', error);
+            alert('Ошибка удаления сообщения: ' + error.message);
+            return;
+        }
+        loadChatMessages();
+    } catch (error) {
+        console.error('Ошибка при удалении сообщения:', error);
+        alert('Ошибка при удалении сообщения: ' + error.message);
+    }
+}
+
+// Удаление изображения из галереи (только для админа)
+async function deleteImage(imageId) {
+    if (currentUserRole !== 'admin') {
+        alert('Только администратор может удалять изображения!');
+        return;
+    }
+    if (!confirm('Вы уверены, что хотите удалить это изображение?')) {
+        return;
+    }
+
+    try {
+        const { data: imageData, error: selectError } = await supabase
+            .from('gallery_images')
+            .select('image_url')
+            .eq('id', imageId)
+            .single();
+
+        if (selectError) {
+            throw new Error('Ошибка получения данных изображения: ' + selectError.message);
+        }
+
+        const { error: deleteError } = await supabase
+            .from('gallery_images')
+            .delete()
+            .eq('id', imageId);
+
+        if (deleteError) {
+            throw new Error('Ошибка удаления изображения: ' + deleteError.message);
+        }
+
+        currentOffset = 0;
+        loadGalleryImages();
+        showSuccess('Изображение успешно удалено!');
+    } catch (error) {
+        console.error('Ошибка при удалении изображения:', error);
+        showError('Ошибка при удалении изображения: ' + error.message);
+    }
+}
+
+// Обработка нажатия Enter
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
-            // --- КОНЕЦ УСТАНОВКИ ---
+        });
+    }
 
-            images.forEach(imageObj => {
-                // Проверяем, существует ли элемент, чтобы избежать дублирования
-                if (document.getElementById(`image-${imageObj.id}`)) {
-                    console.log(`Изображение с ID ${imageObj.id} уже отображено.`);
-                    return;
-                }
+    document.getElementById('registerUsername').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            registerUser();
+        }
+    });
+    document.getElementById('registerPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            registerUser();
+        }
+    });
+    document.getElementById('loginUsername').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            loginUser();
+        }
+    });
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            loginUser();
+        }
+    });
 
-                const galleryItem = document.createElement('div');
-                galleryItem.className = 'gallery-item';
-                galleryItem.id = `image-${imageObj.id}`;
-                galleryItem.dataset.imageId = imageObj.id;
+    setTimeout(createAdminUser, 1000);
+});
 
-                let imageHTML = `
-                    <img src="${imageObj.src}" alt="${imageObj.title}" onerror="this.src='image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2ZmZjRmYSIvPjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2VlMDA5MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPg=='">
-                    <div class="item-title">${escapeHtml(imageObj.title)}</div>
-                    <div class="item-desc">${escapeHtml(imageObj.desc)}</div>
-                    <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
-                `;
+// Загрузка изображений из Supabase
+async function loadGalleryImages() {
+    if (isLoading) return;
+    try {
+        if (!supabase) {
+            throw new Error('Supabase client not initialized');
+        }
+        isLoading = true;
+        showLoading(true);
+        hideError();
+        hideSuccess();
 
-                if (currentUserRole === 'admin') {
-                    imageHTML += `<button class="delete-button" onclick="deleteImage('${imageObj.id}'); event.stopPropagation();">×</button>`;
-                }
+        const { data, error } = await supabase
+            .from('gallery_images')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .range(currentOffset, currentOffset + imagesPerPage - 1);
 
-                imageHTML += `
-                    <div class="comments-section">
-                        <div class="comments-header">Комментарии:</div>
-                        <div class="comments-list" id="comments-list-${imageObj.id}">
-                        </div>
-                `;
+        if (error) {
+            throw error;
+        }
 
-                if (isLoggedIn) {
-                    imageHTML += `
-                        <div class="comment-form">
-                            <input type="text" id="comment-input-${imageObj.id}" placeholder="Написать комментарий..." maxlength="200">
-                            <button onclick="addComment('${imageObj.id}'); event.stopPropagation();">Отправить</button>
-                        </div>
-                    `;
-                } else {
-                    imageHTML += `<div style="font-size: 11px; color: #999; text-align: center;">Авторизуйтесь, чтобы комментировать</div>`;
-                }
+        if (currentOffset === 0) {
+            galleryImages = [];
+            document.getElementById('galleryGrid').innerHTML = '';
+        }
 
-                imageHTML += `</div>`;
-                galleryItem.innerHTML = imageHTML;
+        const newImages = data.map(img => ({
+            id: img.id,
+            src: img.image_url,
+            title: img.title,
+            desc: img.description || 'Нет описания',
+            date: new Date(img.created_at).toLocaleDateString('ru-RU'),
+            created_at: img.created_at
+        }));
 
-                // Обработчик клика для открытия изображения
-                galleryItem.addEventListener('click', function(e) {
-                    if (e.target.closest('.delete-button') || e.target.closest('.comment-form') || e.target.closest('.delete-comment-button')) {
-                        return;
-                    }
-                    openFullscreenImage(imageObj.src, imageObj.title);
-                });
+        galleryImages = galleryImages.concat(newImages);
+        renderGalleryImages(newImages);
+        currentOffset += data.length;
 
-                // Показ кнопки удаления для админа
-                if (currentUserRole === 'admin') {
-                    galleryItem.addEventListener('mouseenter', function() {
-                        const deleteButton = this.querySelector('.delete-button');
-                        if (deleteButton) deleteButton.style.display = 'block';
-                    });
-                    galleryItem.addEventListener('mouseleave', function() {
-                        const deleteButton = this.querySelector('.delete-button');
-                        if (deleteButton) deleteButton.style.display = 'none';
-                    });
-                }
+        const loadMoreButton = document.getElementById('loadMoreButton');
+        if (data.length < imagesPerPage) {
+            loadMoreButton.disabled = true;
+            loadMoreButton.textContent = 'БОЛЬШЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ НЕТ';
+        } else {
+            loadMoreButton.disabled = false;
+            loadMoreButton.textContent = 'ЗАГРУЗИТЬ ЕЩЕ СВЯЩЕННЫХ ИЗОБРАЖЕНИЙ';
+        }
+    } catch (error) {
+        showError('Ошибка загрузки изображений: ' + error.message);
+        console.error('Ошибка загрузки изображений:', error);
+    } finally {
+        isLoading = false;
+        showLoading(false);
+    }
+}
 
-                galleryGrid.appendChild(galleryItem);
+// Загрузка еще изображений
+function loadMoreImages() {
+    loadGalleryImages();
+}
 
-                // --- ЗАГРУЗКА И ОТСЛЕЖИВАНИЕ КОММЕНТАРИЕВ ---
-                loadCommentsForImage(imageObj.id).then(() => {
-                    trackImageComments(imageObj.id);
-                }).catch(error => {
-                    console.error(`Ошибка при первой загрузке комментариев для изображения ${imageObj.id}:`, error);
-                    trackImageComments(imageObj.id); // Все равно начинаем отслеживать
-                });
-                // --- КОНЕЦ ЗАГРУЗКИ И ОТСЛЕЖИВАНИЯ ---
+// Отображение изображений
+function renderGalleryImages(images) {
+    const galleryGrid = document.getElementById('galleryGrid');
+    images.forEach(imageObj => {
+        if (document.getElementById(`image-${imageObj.id}`)) {
+            return;
+        }
+
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.id = `image-${imageObj.id}`;
+        galleryItem.dataset.imageId = imageObj.id;
+
+        let imageHTML = `
+            <img src="${imageObj.src}" alt="${imageObj.title}">
+            <div class="item-title">${escapeHtml(imageObj.title)}</div>
+            <div class="item-desc">${escapeHtml(imageObj.desc)}</div>
+            <div class="item-info">ID:${imageObj.id.substring(0, 8)} | ${imageObj.date}</div>
+        `;
+
+        if (currentUserRole === 'admin') {
+            imageHTML += `<button class="delete-button" onclick="deleteImage('${imageObj.id}'); event.stopPropagation();">×</button>`;
+        }
+
+        imageHTML += `
+            <div class="comments-section">
+                <div class="comments-header">Комментарии:</div>
+                <div class="comments-list" id="comments-list-${imageObj.id}">
+                </div>
+        `;
+
+        if (isLoggedIn) {
+            imageHTML += `
+                <div class="comment-form">
+                    <input type="text" id="comment-input-${imageObj.id}" placeholder="Написать комментарий..." maxlength="200">
+                    <button onclick="addComment('${imageObj.id}'); event.stopPropagation();">Отправить</button>
+                </div>
+            `;
+        } else {
+            imageHTML += `<div style="font-size: 11px; color: #999; text-align: center;">Авторизуйтесь, чтобы комментировать</div>`;
+        }
+
+        imageHTML += `</div>`;
+        galleryItem.innerHTML = imageHTML;
+
+        galleryItem.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-button') || e.target.closest('.comment-form') || e.target.closest('.delete-comment-button')) {
+                return;
+            }
+            openFullscreenImage(imageObj.src, imageObj.title);
+        });
+
+        if (currentUserRole === 'admin') {
+            galleryItem.addEventListener('mouseenter', function() {
+                const deleteButton = this.querySelector('.delete-button');
+                if (deleteButton) deleteButton.style.display = 'block';
+            });
+            galleryItem.addEventListener('mouseleave', function() {
+                const deleteButton = this.querySelector('.delete-button');
+                if (deleteButton) deleteButton.style.display = 'none';
             });
         }
 
-        // ... (остальной JavaScript) ...
+        galleryGrid.appendChild(galleryItem);
+    });
+}
 
-        async function loadCommentsForImage(imageId) {
-             try {
-                 if (!supabase) return;
+// Загрузка комментариев для изображения
+async function loadCommentsForImage(imageId) {
+    try {
+        if (!supabase) return;
+        const { data, error } = await supabase
+            .from('image_comments')
+            .select('id, username, comment, created_at')
+            .eq('image_id', imageId)
+            .order('created_at', { ascending: true });
 
-                 const { data, error } = await supabase
-                     .from('image_comments')
-                     .select('id, username, comment, created_at')
-                     .eq('image_id', imageId)
-                     .order('created_at', { ascending: true }); // Сначала старые
-
-                 if (error) {
-                      console.error(`Ошибка загрузки комментариев для изображения ${imageId}:`, error);
-                      // Можно отобразить сообщение об ошибке в блоке комментариев
-                      const commentsList = document.getElementById(`comments-list-${imageId}`);
-                      if (commentsList) {
-                          commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
-                      }
-                      return;
-                 }
-
-                 renderComments(imageId, data);
-
-             } catch (error) {
-                  console.error(`Критическая ошибка загрузки комментариев для изображения ${imageId}:`, error);
-                  const commentsList = document.getElementById(`comments-list-${imageId}`);
-                  if (commentsList) {
-                       commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
-                  }
-             }
-        }
-
-        // Отображение комментариев для изображения
-                // Отображение комментариев для изображения (обновлённая версия)
-        function renderComments(imageId, comments) {
+        if (error) {
+            console.error(`Ошибка загрузки комментариев для изображения ${imageId}:`, error);
             const commentsList = document.getElementById(`comments-list-${imageId}`);
-            if (!commentsList) return;
-
-            if (comments.length === 0) {
-                 commentsList.innerHTML = `<div style="font-size:11px; color:#999; text-align:center;">Комментариев пока нет</div>`;
-                 return;
+            if (commentsList) {
+                commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
             }
-
-            commentsList.innerHTML = ''; // Очищаем список
-
-            comments.forEach(comment => {
-                 const commentElement = document.createElement('div');
-                 commentElement.className = 'comment';
-                 commentElement.dataset.commentId = comment.id; // Сохраняем ID комментария
-                 const formattedTime = new Date(comment.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-                 commentElement.innerHTML = `
-                     <div class="comment-header">${escapeHtml(comment.username)} <span style="font-weight:normal; color:#999;">${formattedTime}</span></div>
-                     <div class="comment-content">${escapeHtml(comment.comment)}</div>
-                 `;
-
-                 // Добавляем кнопку удаления для админа (для комментария)
-                 if (currentUserRole === 'admin') {
-                     const deleteCommentButton = document.createElement('button');
-                     deleteCommentButton.className = 'delete-comment-button';
-                     deleteCommentButton.textContent = '×';
-                     deleteCommentButton.title = 'Удалить комментарий';
-                     deleteCommentButton.onclick = function(e) {
-                         e.stopPropagation(); // Останавливаем всплытие, чтобы не открылось изображение
-                         deleteComment(comment.id, imageId); // Передаем ID комментария и ID изображения
-                     };
-                     commentElement.appendChild(deleteCommentButton);
-                 }
-
-                 commentsList.appendChild(commentElement);
-            });
-
-            // Прокручиваем вниз списка комментариев
-            commentsList.scrollTop = commentsList.scrollHeight;
+            return;
         }
+        renderComments(imageId, data);
+    } catch (error) {
+        console.error(`Критическая ошибка загрузки комментариев для изображения ${imageId}:`, error);
+        const commentsList = document.getElementById(`comments-list-${imageId}`);
+        if (commentsList) {
+            commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
+        }
+    }
+}
 
-        // ... (остальной JavaScript) ...
+// Отображение комментариев
+function renderComments(imageId, comments) {
+    const commentsList = document.getElementById(`comments-list-${imageId}`);
+    if (!commentsList) return;
+    if (comments.length === 0) {
+        commentsList.innerHTML = `<div style="font-size:11px; color:#999; text-align:center;">Комментариев пока нет</div>`;
+        return;
+    }
+    commentsList.innerHTML = '';
+    comments.forEach(comment => {
+        const commentElement = document.createElement('div');
+        commentElement.className = 'comment';
+        const formattedTime = new Date(comment.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        commentElement.innerHTML = `
+            <div class="comment-header">${escapeHtml(comment.username)} <span style="font-weight:normal; color:#999;">${formattedTime}</span></div>
+            <div class="comment-content">${escapeHtml(comment.comment)}</div>
+        `;
+        if (currentUserRole === 'admin') {
+            const deleteCommentButton = document.createElement('button');
+            deleteCommentButton.className = 'delete-comment-button';
+            deleteCommentButton.textContent = '×';
+            deleteCommentButton.onclick = function(e) {
+                e.stopPropagation();
+                deleteComment(comment.id, imageId);
+            };
+            commentElement.appendChild(deleteCommentButton);
+        }
+        commentsList.appendChild(commentElement);
+    });
+    commentsList.scrollTop = commentsList.scrollHeight;
+}
 
-
-        // Добавление комментария к изображению
-        // Добавление комментария к изображению
+// Добавление комментария
 async function addComment(imageId) {
     if (!isLoggedIn || !currentUsername) {
         alert('Вы должны быть авторизованы, чтобы оставлять комментарии.');
         return;
     }
-
     const inputElement = document.getElementById(`comment-input-${imageId}`);
     if (!inputElement) return;
-
     const commentText = inputElement.value.trim();
     if (!commentText) {
         alert('Пожалуйста, введите текст комментария.');
         return;
     }
-
-    if (commentText.length > 200) { // Проверка длины
+    if (commentText.length > 200) {
         alert('Комментарий слишком длинный (максимум 200 символов).');
         return;
     }
 
-    const button = inputElement.nextElementSibling; // Кнопка "Отправить"
+    const button = inputElement.nextElementSibling;
     const originalText = button.textContent;
     button.disabled = true;
     button.textContent = '...';
 
     try {
         if (!supabase) throw new Error('Клиент Supabase не инициализирован');
-
         const { data, error } = await supabase
             .from('image_comments')
             .insert([
@@ -2051,605 +1825,289 @@ async function addComment(imageId) {
                     comment: commentText
                 }
             ])
-            .select(); // Получаем вставленную запись
+            .select();
 
         if (error) throw error;
-
-        console.log('Комментарий добавлен:', data[0]);
-
-        // Очищаем поле ввода
         inputElement.value = '';
-
-        // Перезагружаем комментарии для этого изображения
         loadCommentsForImage(imageId);
-
     } catch (error) {
         console.error('Ошибка добавления комментария:', error);
         alert('Ошибка при добавлении комментария: ' + error.message);
     } finally {
-        // Восстанавливаем кнопку
         button.disabled = false;
         button.textContent = originalText;
     }
 }
 
+// Удаление комментария
+async function deleteComment(commentId, imageId) {
+    if (currentUserRole !== 'admin') {
+        alert('Только администратор может удалять комментарии!');
+        return;
+    }
+    if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
+        return;
+    }
 
+    try {
+        if (!supabase) throw new Error('Клиент Supabase не инициализирован');
+        const { error } = await supabase
+            .from('image_comments')
+            .delete()
+            .eq('id', commentId);
 
-        
-        // Обработка формы загрузки
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            debugLog('Начало процесса загрузки изображения');
-            
-            if (!supabase) {
-                showError('Ошибка: Не удалось подключиться к базе данных');
-                return;
-            }
-            
-            const fileInput = document.getElementById('imageFile');
-            const titleInput = document.getElementById('imageTitle');
-            const descInput = document.getElementById('imageDesc');
-            const uploadButton = document.getElementById('uploadButton');
-            
-            if (!fileInput.files[0]) {
-                showError('Пожалуйста, выберите изображение!');
-                return;
-            }
-            
-            const file = fileInput.files[0];
-            const title = titleInput.value || 'Без названия';
-            const desc = descInput.value || '';
-            
-            debugLog('Выбран файл для загрузки', { 
-                name: file.name, 
-                size: file.size, 
-                type: file.type 
+        if (error) throw error;
+        loadCommentsForImage(imageId);
+    } catch (error) {
+        console.error('Ошибка удаления комментария:', error);
+        alert('Ошибка при удалении комментария: ' + error.message);
+    }
+}
+
+// Обработка формы загрузки
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!supabase) {
+        showError('Ошибка: Не удалось подключиться к базе данных');
+        return;
+    }
+    const fileInput = document.getElementById('imageFile');
+    const titleInput = document.getElementById('imageTitle');
+    const descInput = document.getElementById('imageDesc');
+    const uploadButton = document.getElementById('uploadButton');
+
+    if (!fileInput.files[0]) {
+        showError('Пожалуйста, выберите изображение!');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const title = titleInput.value || 'Без названия';
+    const desc = descInput.value || '';
+
+    if (!file.type.match('image.*')) {
+        showError('Пожалуйста, выберите изображение!');
+        return;
+    }
+
+    try {
+        showLoading(true);
+        uploadButton.disabled = true;
+        hideError();
+        hideSuccess();
+        hideDebug();
+
+        const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { data: uploadData, error: uploadError } = await supabase
+            .storage
+            .from('gallery-images')
+            .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: file.type
             });
-            
-            // Проверка, является ли файл изображением
-            if (!file.type.match('image.*')) {
-                showError('Пожалуйста, выберите изображение!');
-                return;
-            }
-            
-            try {
-                showLoading(true);
-                uploadButton.disabled = true;
-                hideError();
-                hideSuccess();
-                hideDebug();
-                
-                // Загрузка файла в Supabase Storage
-                const fileName = `gallery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-                debugLog('Попытка загрузки файла в Storage', { fileName: fileName });
-                
-                const { data: uploadData, error: uploadError } = await supabase
-                    .storage
-                    .from('gallery-images')
-                    .upload(fileName, file, {
-                        cacheControl: '3600',
-                        upsert: false,
-                        contentType: file.type
-                    });
-                
-                if (uploadError) {
-                    debugLog('Ошибка загрузки в Storage', uploadError);
-                    throw new Error(`Storage upload error: ${uploadError.message}`);
+
+        if (uploadError) {
+            throw new Error(`Storage upload error: ${uploadError.message}`);
+        }
+
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
+
+        const { data: imageData, error: insertError } = await supabase
+            .from('gallery_images')
+            .insert([
+                {
+                    title: title,
+                    description: desc,
+                    image_url: publicUrl
                 }
-                
-                debugLog('Файл успешно загружен в Storage', uploadData);
-                
-                // Правильное получение публичного URL файла
-                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/gallery-images/${fileName}`;
-                debugLog('Сгенерирован публичный URL', { publicUrl: publicUrl });
-                
-                // Сохранение информации об изображении в таблицу
-                debugLog('Сохранение информации в базу данных', { 
-                    title: title, 
-                    description: desc, 
-                    image_url: publicUrl 
-                });
-                
-                const { data: imageData, error: insertError } = await supabase
-                    .from('gallery_images')
-                    .insert([
-                        {
-                            title: title,
-                            description: desc,
-                            image_url: publicUrl
-                        }
-                    ])
-                    .select();
-                
-                if (insertError) {
-                    debugLog('Ошибка сохранения в базу данных', insertError);
-                    throw new Error(`Database insert error: ${insertError.message}`);
-                }
-                
-                debugLog('Изображение успешно сохранено в базе данных', imageData);
-                
-                // Сбрасываем offset и перезагружаем галерею
-                currentOffset = 0;
-                loadGalleryImages();
-                
-                // Очистка формы
-                document.getElementById('uploadForm').reset();
-                
-                showSuccess('Священное изображение успешно добавлено в галерею!');
-                debugLog('Загрузка завершена успешно');
-                
-            } catch (error) {
-                showError('Ошибка загрузки изображения: ' + error.message);
-                console.error('Ошибка загрузки:', error);
-                debugLog('Критическая ошибка загрузки', error);
-            } finally {
-                showLoading(false);
-                uploadButton.disabled = false;
+            ])
+            .select();
+
+        if (insertError) {
+            throw new Error(`Database insert error: ${insertError.message}`);
+        }
+
+        currentOffset = 0;
+        loadGalleryImages();
+        document.getElementById('uploadForm').reset();
+        showSuccess('Священное изображение успешно добавлено в галерею!');
+    } catch (error) {
+        showError('Ошибка загрузки изображения: ' + error.message);
+        console.error('Ошибка загрузки:', error);
+    } finally {
+        showLoading(false);
+        uploadButton.disabled = false;
+    }
+});
+
+// Функция открытия изображения в полном размере
+function openFullscreenImage(src, title) {
+    let modal = document.getElementById('imageModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'imageModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <span class="close">&times;</span>
+            <img class="modal-content" id="modalImage">
+            <div id="modalCaption" class="modal-caption"></div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('.close').addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
             }
         });
-        
-        // Функция открытия изображения в полном размере
-        function openFullscreenImage(src, title) {
-            // Создаем модальное окно динамически
-            let modal = document.getElementById('imageModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'imageModal';
-                modal.className = 'modal';
-                modal.innerHTML = `
-                    <span class="close">&times;</span>
-                    <img class="modal-content" id="modalImage">
-                    <div id="modalCaption" class="modal-caption"></div>
-                `;
-                document.body.appendChild(modal);
-                
-                // Добавляем обработчики событий
-                modal.querySelector('.close').addEventListener('click', function() {
-                    modal.style.display = 'none';
-                });
-                
-                modal.addEventListener('click', function(event) {
-                    if (event.target === modal) {
-                        modal.style.display = 'none';
+    }
+    const modalImg = modal.querySelector('#modalImage');
+    const captionText = modal.querySelector('#modalCaption');
+    modal.style.display = 'block';
+    modalImg.src = src;
+    captionText.innerHTML = escapeHtml(title);
+}
+
+// Вспомогательные функции
+function showLoading(show) {
+    const loading = document.getElementById('loadingIndicator');
+    if (loading) {
+        loading.style.display = show ? 'block' : 'none';
+    }
+}
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+}
+function hideError() {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+}
+function showSuccess(message) {
+    const successDiv = document.getElementById('successMessage');
+    if (successDiv) {
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+function hideSuccess() {
+    const successDiv = document.getElementById('successMessage');
+    if (successDiv) {
+        successDiv.style.display = 'none';
+    }
+}
+function hideDebug() {
+    const debugDiv = document.getElementById('debugInfo');
+    if (debugDiv) {
+        debugDiv.style.display = 'none';
+        debugDiv.innerHTML = '';
+    }
+}
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Создание админа
+async function createAdminUser() {
+    try {
+        if (!supabase) {
+            console.log('Supabase не инициализирован');
+            return;
+        }
+        console.log('Попытка создания/проверки админской учетной записи...');
+        const { data: existingUsers, error: checkError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', 'Takehiko');
+
+        if (checkError) {
+            console.error('Ошибка проверки существующего админа:', checkError);
+            return;
+        }
+
+        if (!existingUsers || existingUsers.length === 0) {
+            console.log('Админ не найден, создаем новую учетную запись...');
+            const { data: insertData, error: insertError } = await supabase
+                .from('users')
+                .insert([
+                    {
+                        username: 'Takehiko',
+                        password: '1love',
+                        role: 'admin'
                     }
-                });
-            }
-            
-            const modalImg = modal.querySelector('#modalImage');
-            const captionText = modal.querySelector('#modalCaption');
-            
-            modal.style.display = 'block';
-            modalImg.src = src;
-            captionText.innerHTML = escapeHtml(title);
-        }
-        
-        // Вспомогательные функции
-        function showLoading(show) {
-            const loading = document.getElementById('loadingIndicator');
-            if (loading) {
-                loading.style.display = show ? 'block' : 'none';
-            }
-        }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-            }
-        }
-        
-        function hideError() {
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv) {
-                errorDiv.style.display = 'none';
-            }
-        }
-        
-        function showSuccess(message) {
-            const successDiv = document.getElementById('successMessage');
-            if (successDiv) {
-                successDiv.textContent = message;
-                successDiv.style.display = 'block';
-                setTimeout(() => {
-                    successDiv.style.display = 'none';
-                }, 5000);
-            }
-        }
-        
-        function hideSuccess() {
-            const successDiv = document.getElementById('successMessage');
-            if (successDiv) {
-                successDiv.style.display = 'none';
-            }
-        }
-        
-        function hideDebug() {
-            const debugDiv = document.getElementById('debugInfo');
-            if (debugDiv) {
-                debugDiv.style.display = 'none';
-                debugDiv.innerHTML = '';
-            }
-        }
-        
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+                ])
+                .select();
 
-        function startCommentsPolling() {
-            if (commentsInterval) clearInterval(commentsInterval);
-            loadActiveComments();
-            commentsInterval = setInterval(loadActiveComments, 5000); // Каждые 5 секунд
-            console.log('Интервал обновления комментариев запущен.');
-        }
-
-        async function loadActiveComments() {
-            const imageIdsToLoad = new Set(activeImageComments);
-            console.log('Обновление комментариев для изображений:', Array.from(imageIdsToLoad));
-            for (const imageId of imageIdsToLoad) {
-                const commentsListElement = document.getElementById(`comments-list-${imageId}`);
-                if (commentsListElement) {
-                    try {
-                        await loadCommentsForImage(imageId);
-                    } catch (error) {
-                        console.error(`Ошибка при обновлении комментариев для изображения ${imageId}:`, error);
-                    }
-                } else {
-                    activeImageComments.delete(imageId);
-                    console.log(`Изображение ${imageId} больше не отображается, перестаем обновлять его комментарии.`);
-                }
+            if (insertError) {
+                console.error('Ошибка создания админа:', insertError);
+            } else {
+                console.log('Админская учетная запись создана успешно:', insertData);
             }
-        }
-
-        function trackImageComments(imageId) {
-            activeImageComments.add(imageId);
-            console.log(`Начато отслеживание комментариев для изображения ${imageId}.`);
-        }
-        // --- Конец управления комментариями ---
-
-        // --- Управление обновлением галереи ---
-        function startGalleryPolling() {
-            if (galleryPollingInterval) clearInterval(galleryPollingInterval);
-            checkForNewGalleryImages();
-            galleryPollingInterval = setInterval(checkForNewGalleryImages, 10000); // Каждые 10 секунд
-            console.log('Интервал обновления галереи запущен.');
-        }
-
-        async function checkForNewGalleryImages() {
-            try {
-                if (!supabase) return;
-                let query = supabase
-                    .from('gallery_images')
-                    .select('id, created_at')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                if (lastGalleryImageTimestamp) {
-                    query = query.gt('created_at', lastGalleryImageTimestamp);
-                }
-                const { data, error } = await query;
-                if (error) {
-                    console.error('Ошибка проверки новых изображений:', error);
-                    return;
-                }
-                if (data && data.length > 0) {
-                    console.log(`Найдено ${data.length} новых изображений.`);
-                    lastGalleryImageTimestamp = data[0].created_at;
-                    // Перезагружаем галерею
-                    currentOffset = 0;
-                    document.getElementById('galleryGrid').innerHTML = '';
-                    loadGalleryImages();
-                }
-            } catch (error) {
-                console.error('Ошибка при проверке новых изображений:', error);
-            }
-        }
-
-        function startCommentsPolling() {
-            if (commentsInterval) clearInterval(commentsInterval);
-            loadActiveComments();
-            commentsInterval = setInterval(loadActiveComments, 5000); // Каждые 5 секунд
-            console.log('Интервал обновления комментариев запущен.');
-        }
-
-        async function loadActiveComments() {
-            const imageIdsToLoad = new Set(activeImageComments);
-            console.log('Обновление комментариев для изображений:', Array.from(imageIdsToLoad));
-            for (const imageId of imageIdsToLoad) {
-                const commentsListElement = document.getElementById(`comments-list-${imageId}`);
-                if (commentsListElement) {
-                    try {
-                        await loadCommentsForImage(imageId);
-                    } catch (error) {
-                        console.error(`Ошибка при обновлении комментариев для изображения ${imageId}:`, error);
-                    }
-                } else {
-                    activeImageComments.delete(imageId);
-                    console.log(`Изображение ${imageId} больше не отображается, перестаем обновлять его комментарии.`);
-                }
-            }
-        }
-
-        function trackImageComments(imageId) {
-            activeImageComments.add(imageId);
-            console.log(`Начато отслеживание комментариев для изображения ${imageId}.`);
-        }
-        // --- Конец управления комментариями ---
-
-        // --- Управление обновлением галереи ---
-        function startGalleryPolling() {
-            if (galleryPollingInterval) clearInterval(galleryPollingInterval);
-            checkForNewGalleryImages();
-            galleryPollingInterval = setInterval(checkForNewGalleryImages, 10000); // Каждые 10 секунд
-            console.log('Интервал обновления галереи запущен.');
-        }
-
-        async function checkForNewGalleryImages() {
-            try {
-                if (!supabase) return;
-                let query = supabase
-                    .from('gallery_images')
-                    .select('id, created_at')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                if (lastGalleryImageTimestamp) {
-                    query = query.gt('created_at', lastGalleryImageTimestamp);
-                }
-                const { data, error } = await query;
-                if (error) {
-                    console.error('Ошибка проверки новых изображений:', error);
-                    return;
-                }
-                if (data && data.length > 0) {
-                    console.log(`Найдено ${data.length} новых изображений.`);
-                    lastGalleryImageTimestamp = data[0].created_at;
-                    // Перезагружаем галерею
-                    currentOffset = 0;
-                    document.getElementById('galleryGrid').innerHTML = '';
-                    loadGalleryImages();
-                }
-            } catch (error) {
-                console.error('Ошибка при проверке новых изображений:', error);
-            }
-        }
-        // --- Конец управления галереей ---
-        
-        // Инициализация при загрузке страницы
-        window.addEventListener('load', function() {
-            // Проверим подключение к Supabase
-            debugLog('Инициализация Supabase', { 
-                url: SUPABASE_URL,
-                hasClient: !!supabase 
-            });
-            
-            // Инициализируем счетчик пользователей
-            initUserCounter();
-        });
-        
-        // Создание админской учетной записи - УЛУЧШЕННОЕ
-        async function createAdminUser() {
-            try {
-                if (!supabase) {
-                    console.log('Supabase не инициализирован');
-                    return;
-                }
-                
-                console.log('Попытка создания/проверки админской учетной записи...');
-                
-                // Проверяем, существует ли админ
-                const { data: existingUsers, error: checkError } = await supabase
+        } else {
+            console.log('Админ уже существует:', existingUsers[0]);
+            if (existingUsers[0].role !== 'admin') {
+                const { error: updateError } = await supabase
                     .from('users')
-                    .select('*')
+                    .update({ role: 'admin' })
                     .eq('username', 'Takehiko');
-                
-                if (checkError) {
-                    console.error('Ошибка проверки существующего админа:', checkError);
-                    return;
-                }
-                
-                // Если админ не существует, создаем его
-                if (!existingUsers || existingUsers.length === 0) {
-                    console.log('Админ не найден, создаем новую учетную запись...');
-                    
-                    const { data: insertData, error: insertError } = await supabase
-                        .from('users')
-                        .insert([
-                            {
-                                username: 'Takehiko',
-                                password: '1love',
-                                role: 'admin'
-                            }
-                        ])
-                        .select();
-                    
-                    if (insertError) {
-                        console.error('Ошибка создания админа:', insertError);
-                    } else {
-                        console.log('Админская учетная запись создана успешно:', insertData);
-                    }
+                if (updateError) {
+                    console.error('Ошибка обновления роли админа:', updateError);
                 } else {
-                    console.log('Админ уже существует:', existingUsers[0]);
-                    // Убедимся, что у админа правильная роль
-                    if (existingUsers[0].role !== 'admin') {
-                        const { error: updateError } = await supabase
-                            .from('users')
-                            .update({ role: 'admin' })
-                            .eq('username', 'Takehiko');
-                        
-                        if (updateError) {
-                            console.error('Ошибка обновления роли админа:', updateError);
-                        } else {
-                            console.log('Роль админа успешно обновлена');
-                        }
-                    }
+                    console.log('Роль админа успешно обновлена');
                 }
-                
-            } catch (error) {
-                console.error('Ошибка при создании/проверке админа:', error);
             }
         }
-        
-        // Очистка при закрытии страницы
-        window.addEventListener('beforeunload', function() {
-            if (chatInterval) {
-                clearInterval(chatInterval);
-            }
-            
-            // Добавляем сообщение о выходе пользователя
-            if (isLoggedIn) {
-                addSystemMessage(`${currentUsername} покинул священный чат`);
-            }
-        });
+    } catch (error) {
+        console.error('Ошибка при создании/проверке админа:', error);
+    }
+}
 
-        async function loadCommentsForImage(imageId) {
-             try {
-                 if (!supabase) return;
+// Очистка при закрытии страницы
+window.addEventListener('beforeunload', function() {
+    if (chatInterval) {
+        clearInterval(chatInterval);
+    }
+    if (isLoggedIn) {
+        addSystemMessage(`${currentUsername} покинул священный чат`);
+    }
+});
 
-                 const { data, error } = await supabase
-                     .from('image_comments')
-                     .select('id, username, comment, created_at')
-                     .eq('image_id', imageId)
-                     .order('created_at', { ascending: true }); // Сначала старые
+// Инициализация при загрузке
+window.addEventListener('load', function() {
+    debugLog('Инициализация Supabase', {
+        url: SUPABASE_URL,
+        hasClient: !!supabase
+    });
+    initUserCounter();
+});
 
-                 if (error) {
-                      console.error(`Ошибка загрузки комментариев для изображения ${imageId}:`, error);
-                      // Можно отобразить сообщение об ошибке в блоке комментариев
-                      const commentsList = document.getElementById(`comments-list-${imageId}`);
-                      if (commentsList) {
-                          commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
-                      }
-                      return;
-                 }
-
-                 renderComments(imageId, data);
-
-             } catch (error) {
-                  console.error(`Критическая ошибка загрузки комментариев для изображения ${imageId}:`, error);
-                  const commentsList = document.getElementById(`comments-list-${imageId}`);
-                  if (commentsList) {
-                       commentsList.innerHTML = `<div style="color:red; font-size:11px;">Ошибка загрузки комментариев</div>`;
-                  }
-             }
-        }
-
-        // Отображение комментариев для изображения
-        function renderComments(imageId, comments) {
-            const commentsList = document.getElementById(`comments-list-${imageId}`);
-            if (!commentsList) return;
-
-            if (comments.length === 0) {
-                 commentsList.innerHTML = `<div style="font-size:11px; color:#999; text-align:center;">Комментариев пока нет</div>`;
-                 return;
-            }
-
-            commentsList.innerHTML = ''; // Очищаем список
-
-            comments.forEach(comment => {
-                 const commentElement = document.createElement('div');
-                 commentElement.className = 'comment';
-                 const formattedTime = new Date(comment.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-                 commentElement.innerHTML = `
-                     <div class="comment-header">${escapeHtml(comment.username)} <span style="font-weight:normal; color:#999;">${formattedTime}</span></div>
-                     <div class="comment-content">${escapeHtml(comment.comment)}</div>
-                 `;
-                 commentsList.appendChild(commentElement);
-            });
-
-            // Прокручиваем вниз списка комментариев
-            commentsList.scrollTop = commentsList.scrollHeight;
-        }
-
-
-        // Добавление комментария к изображению
-        async function addComment(imageId) {
-             if (!isLoggedIn || !currentUsername) {
-                  alert('Вы должны быть авторизованы, чтобы оставлять комментарии.');
-                  return;
-             }
-
-             const inputElement = document.getElementById(`comment-input-${imageId}`);
-             if (!inputElement) return;
-
-             const commentText = inputElement.value.trim();
-             if (!commentText) {
-                  alert('Пожалуйста, введите текст комментария.');
-                  return;
-             }
-
-             if (commentText.length > 200) { // Проверка длины
-                  alert('Комментарий слишком длинный (максимум 200 символов).');
-                  return;
-             }
-
-             const button = inputElement.nextElementSibling; // Кнопка "Отправить"
-             const originalText = button.textContent;
-             button.disabled = true;
-             button.textContent = '...';
-
-             try {
-                  if (!supabase) throw new Error('Клиент Supabase не инициализирован');
-
-                  const { data, error } = await supabase
-                      .from('image_comments')
-                      .insert([
-                          {
-                              image_id: imageId,
-                              username: currentUsername,
-                              comment: commentText
-                          }
-                      ])
-                      .select(); // Получаем вставленную запись
-
-                  if (error) throw error;
-
-                  console.log('Комментарий добавлен:', data[0]);
-
-                  // Очищаем поле ввода
-                  inputElement.value = '';
-
-                  // Перезагружаем комментарии для этого изображения
-                  // Можно было бы добавить напрямую в DOM, но проще перезагрузить
-                  loadCommentsForImage(imageId);
-
-             } catch (error) {
-                  console.error('Ошибка добавления комментария:', error);
-                  alert('Ошибка при добавлении комментария: ' + error.message);
-             } finally {
-                  // Восстанавливаем кнопку
-                  button.disabled = false;
-                  button.textContent = originalText;
-             }
-        }
-
-                
-        // Удаление комментария (только для админа)
-                // Удаление комментария (только для админа)
-        async function deleteComment(commentId, imageId) {
-            if (currentUserRole !== 'admin') {
-                alert('Только администратор может удалять комментарии!');
-                return;
-            }
-            if (!confirm('Вы уверены, что хотите удалить этот комментарий?')) {
-                return;
-            }
-            try {
-                if (!supabase) throw new Error('Клиент Supabase не инициализирован');
-                const { error } = await supabase
-                    .from('image_comments')
-                    .delete()
-                    .eq('id', commentId);
-                if (error) throw error;
-                console.log(`Комментарий ${commentId} удален.`);
-                loadCommentsForImage(imageId); // Перезагружаем комментарии
-            } catch (error) {
-                console.error('Ошибка удаления комментария:', error);
-                alert('Ошибка при удалении комментария: ' + error.message);
-            }
-        }
-
-        
-    </script>
+// Добавляем простую функцию для отладки
+function debugLog(message, data = null) {
+    const debugDiv = document.getElementById('debugInfo');
+    if (debugDiv) {
+        debugDiv.style.display = 'block';
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = data ?
+            `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}` :
+            `[${timestamp}] ${message}`;
+        debugDiv.innerHTML += `<div>${logEntry}</div>`;
+        debugDiv.scrollTop = debugDiv.scrollHeight;
+        console.log(`[DEBUG] ${message}`, data);
+    }
+}
+</script>
 </body>
 </html>
